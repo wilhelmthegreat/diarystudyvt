@@ -1548,3 +1548,6 @@ build/
 
 # Ignore .env file containing credentials, sensitive data, etc
 .env
+
+# Ignore client secret of Google OAuth
+client_secret.json
