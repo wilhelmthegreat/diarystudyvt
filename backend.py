@@ -27,7 +27,7 @@ def login():
         return jsonify({'message': 'Student login successful'}), 200
     return jsonify({'error': 'Invalid username or password'}), 401
 
-@app.route("\signup", methods=['POST'])
+@app.route("/signup", methods=['POST'])
 def signup():
     data = request.get_json()
     username = data.get('username')
@@ -42,3 +42,13 @@ def signup():
     result = users.insert_one(new_entry)
     # Print the ID of the newly inserted document
     print('Inserted document ID:', result.inserted_id)
+
+# INCOMPLETE
+""" @app.route("/dashboard", methods=['GET']) # Dashboard for professors
+def dashboard():
+    data = request.get_json() # Get the request data
+    username = data.get('username') # Get the username from the request
+    user = db.users.find_one({'username': username}) # Find the user in the database
+    if user and user['role'] == 'professor': # Check if the user is a professor
+        # Return the dashboard data such as courses and user info
+         """
