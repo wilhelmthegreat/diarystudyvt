@@ -43,12 +43,14 @@ def signup():
     # Print the ID of the newly inserted document
     print('Inserted document ID:', result.inserted_id)
 
-# INCOMPLETE
-""" @app.route("/dashboard", methods=['GET']) # Dashboard for professors
-def dashboard():
+
+@app.route("/professor/<username>/courses", methods=['GET']) # Dashboard for professors
+def get_courses():
     data = request.get_json() # Get the request data
     username = data.get('username') # Get the username from the request
     user = db.users.find_one({'username': username}) # Find the user in the database
     if user and user['role'] == 'professor': # Check if the user is a professor
         # Return the dashboard data such as courses and user info
-         """
+        return jsonify({'courses': user['courses']}), 200
+    else:
+        return jsonify({'error': 'Invalid username or role'}), 404
