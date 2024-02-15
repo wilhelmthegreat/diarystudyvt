@@ -24,7 +24,8 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 # Access database and collection as usual
 db = client['database']
 users = db['users']
-
+professors = db['professors']
+'''
 @app.route("/login", methods=['POST'])
 def login():
     data = request.get_json()
@@ -52,7 +53,7 @@ def signup():
     result = users.insert_one(new_entry)
     # Print the ID of the newly inserted document
     print('Inserted document ID:', result.inserted_id)
-
+'''
 @app.route("/callback/google", methods=['GET'])
 def google_callback():
     # Check if user denied access
@@ -128,6 +129,15 @@ def google_callback():
         status=200,
         mimetype="application/json"
     )
+
+@app.route('/professor/<username>/courses', methods=['GET'])
+def get_courses(username):
+    professor = db.professors.find_one({'username': username})
+    if professor:
+        return jsonify({'courses': professor['courses']}), 200
+    else:
+        return jsonify({'error': 'Professor not found'}), 404
+    
 
 @cross_origin()
 @app.route("/auth/google", methods=['GET'])
