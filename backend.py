@@ -201,6 +201,27 @@ def google_auth():
         mimetype="application/json"
     )
 
+@app.route('/professor/<username>/new_course', methods=['POST'])
+def new_course(username):
+    professor = db.professors.find_one({'username': username})
+    if professor:
+        courses = professor['courses']
+        course_number = request.json['course_number']
+        course_name = request.json['course_name']
+        credits = request.json['credits']
+        course = {
+            'course_number': course_number,
+            'course_name': course_name,
+            'credits': credits
+        }
+        courses.append(course)
+        professors.update_one(
+            {'username': username},
+            {'$set': {'courses': courses}}
+        )
+        return jsonify({'message': 'Course added successfully'}), 200
+    else:
+        return jsonify({'error': 'Professor not found'}), 404
 
 if __name__ == "__main__":
     app.run(
