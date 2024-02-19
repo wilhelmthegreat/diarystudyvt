@@ -34,7 +34,7 @@ def google_callback():
             response=html.escape(
                 json.dumps(
                     {
-                        "code": -1, 
+                        "code": -101, 
                         "message": "User denied access", 
                         "data": request.args
                     }
@@ -68,7 +68,7 @@ def google_callback():
             response=html.escape(
                 json.dumps(
                     {
-                        "code": -2, 
+                        "code": -102, 
                         "message": "Failed to obtain access token", 
                         "data": response.json()
                     }
@@ -130,7 +130,7 @@ def google_auth():
             response=html.escape(
                 json.dumps(
                     {
-                        "code": -2, 
+                        "code": -102, 
                         "message": "Failed to obtain access token", 
                         "data": response.json()
                     }
