@@ -25,35 +25,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 db = client['database']
 users = db['users']
 professors = db['professors']
-'''
-@app.route("/login", methods=['POST'])
-def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
 
-    user = db.users.find_one({'username': username})
-    if user and user['password'] == password:
-        # Return success message or JWT token
-        return jsonify({'message': 'Student login successful'}), 200
-    return jsonify({'error': 'Invalid username or password'}), 401
-
-@app.route("/signup", methods=['POST'])
-def signup():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    role = data.get('role')
-
-    new_entry = {
-        'username': username,
-        'password': password,
-        'role': role
-    }
-    result = users.insert_one(new_entry)
-    # Print the ID of the newly inserted document
-    print('Inserted document ID:', result.inserted_id)
-'''
 @app.route("/callback/google", methods=['GET'])
 def google_callback():
     # Check if user denied access
@@ -130,15 +102,6 @@ def google_callback():
         mimetype="application/json"
     )
 
-@app.route('/professor/<username>/courses', methods=['GET'])
-def get_courses(username):
-    professor = db.professors.find_one({'username': username})
-    if professor:
-        return jsonify({'courses': professor['courses']}), 200
-    else:
-        return jsonify({'error': 'Professor not found'}), 404
-    
-
 @cross_origin()
 @app.route("/auth/google", methods=['GET'])
 def google_auth():
@@ -201,8 +164,8 @@ def google_auth():
         mimetype="application/json"
     )
 
-@app.route("/professor/<username>/courses", methods=['GET']) # Dashboard for professors
-def get_courses():
+@app.route("/professors/<username>/courses", methods=['GET']) # Dashboard for professors
+def get_professor_courses():
     data = request.get_json() # Get the request data
     username = data.get('username') # Get the username from the request
     user = db.users.find_one({'username': username}) # Find the user in the database
