@@ -164,17 +164,27 @@ def google_auth():
         mimetype="application/json"
     )
 
-@app.route("/professors/<username>/courses", methods=['GET']) # Dashboard for professors
-def get_professor_courses():
-    data = request.get_json() # Get the request data
-    username = data.get('username') # Get the username from the request
-    user = db.users.find_one({'username': username}) # Find the user in the database
-    if user and user['role'] == 'professor': # Check if the user is a professor
-        # Return the dashboard data such as courses and user info
-          return jsonify({'courses': user['courses']}), 200
+@app.route('/professor/<username>/new_course', methods=['POST'])
+def new_course(username):
+    professor = db.professors.find_one({'username': username})
+    if professor:
+        courses = professor['courses']
+        course_number = request.json['course_number']
+        course_name = request.json['course_name']
+        credits = request.json['credits']
+        course = {
+            'course_number': course_number,
+            'course_name': course_name,
+            'credits': credits
+        }
+        courses.append(course)
+        professors.update_one(
+            {'username': username},
+            {'$set': {'courses': courses}}
+        )
+        return jsonify({'message': 'Course added successfully'}), 200
     else:
-        return jsonify({'error': 'Invalid username or role'}), 404
-
+        return jsonify({'error': 'Professor not found'}), 404
 
 if __name__ == "__main__":
     app.run(
