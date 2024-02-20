@@ -164,6 +164,7 @@ def google_auth():
         mimetype="application/json"
     )
 
+#Function to create a new course
 @app.route('/professor/<username>/new_course', methods=['POST'])
 def new_course(username):
     professor = db.professors.find_one({'username': username})
