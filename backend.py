@@ -186,6 +186,14 @@ def new_course(username):
     else:
         return jsonify({'error': 'Professor not found'}), 404
 
+@app.route('/professor/<username>/courses', methods=['GET'])
+def get_courses(username):
+    professor = db.professors.find_one({'username': username})
+    if professor:
+        return jsonify({'courses': professor['courses']}), 200
+    else:
+        return jsonify({'error': 'Professor not found'}), 404
+
 if __name__ == "__main__":
     app.run(
         debug=True,
