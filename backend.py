@@ -176,7 +176,8 @@ def new_course(username):
         course = {
             'course_number': course_number,
             'course_name': course_name,
-            'credits': credits
+            'credits': credits,
+            'apps': []
         }
         courses.append(course)
         professors.update_one(
@@ -187,11 +188,44 @@ def new_course(username):
     else:
         return jsonify({'error': 'Professor not found'}), 404
 
+#Create new assignment/diary study
 @app.route('/professor/<username>/courses', methods=['GET'])
 def get_courses(username):
     professor = db.professors.find_one({'username': username})
     if professor:
         return jsonify({'courses': professor['courses']}), 200
+    else:
+        return jsonify({'error': 'Professor not found'}), 404
+
+@app.route('/professor/<username>/<course_number>/create_app', methods=['POST'])
+def create_app(username, course_number):
+    #Query by professor
+    professor = db.professors.find_one({'username': username})
+    if professor:
+        #Query by course
+        course = db.courses.find_one({'course_number': course_number})
+        if course:
+            #Subject to change depending on frontend
+            apps = course_number['apps']
+            intro = request.json['intro']
+            start_date = request.json['start_date']
+            end_date = request.json['end_date']
+            num_entries = request.json['num_entries']
+            max_students = request.json['max_students']
+            app = {
+                'intro': intro,
+                'start_date': start_date,
+                'end_date': end_date,
+                'num_entries': num_entries,
+                'max_students': max_students
+            }
+            apps.update_one(
+                {'course_number': course_number},
+                {'$set': {'apps': app}}
+            )
+            return jsonify({'message': 'App added successfully'}), 200
+        else:
+            return jsonify({'error': 'Course not found'}), 404
     else:
         return jsonify({'error': 'Professor not found'}), 404
 
