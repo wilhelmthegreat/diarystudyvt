@@ -164,7 +164,7 @@ def google_auth():
                     {
                         "code": 0, 
                         "message": "",
-                        "data": user
+                        "data": user_info
                     }
                 ),
                 quote=False
