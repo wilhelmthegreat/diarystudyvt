@@ -149,20 +149,49 @@ def google_auth():
     print("Successfully obtained Google user Info!")
     print("User ID:", response.json()['id'])
     print("Email:", response.json()['email'])
-    return Response(
-        response=html.escape(
-            json.dumps(
-                {
-                    "code": 0, 
-                    "message": "Successfully obtained Google user info!", 
-                    "data": response.json()
-                }
-            ),
-            quote=False
-        ), 
-        status=200,
-        mimetype="application/json"
-    )
+    # Check if the user is already registered
+    user = users.find_one({'openid': response.json()['id'], 'email': response.json()['email']})
+    if user:
+        user_info = {
+            "isRegistered": True,
+            "username": user['username'],
+            "avatar": user['avatar'],
+            "email": user['email']
+        }
+        return Response(
+            response=html.escape(
+                json.dumps(
+                    {
+                        "code": 0, 
+                        "message": "",
+                        "data": user
+                    }
+                ),
+                quote=False
+            ), 
+            status=200,
+            mimetype="application/json"
+        )
+    else:
+        user_info = {
+            "isRegistered": False,
+            "avatar": response.json()['picture'],
+            "email": response.json()['email']
+        }
+        return Response(
+            response=html.escape(
+                json.dumps(
+                    {
+                        "code": 0, 
+                        "message": "", 
+                        "data": user_info
+                    }
+                ),
+                quote=False
+            ), 
+            status=200,
+            mimetype="application/json"
+        )
 
 #Function to create a new course
 @app.route('/professor/<username>/new_course', methods=['POST'])
