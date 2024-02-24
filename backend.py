@@ -247,9 +247,11 @@ def create_app(username, course_number):
 
 
 def get_grades(username, course_number):
-    user = users.find_one({username: username})
+    user = users.find_one({username: username})  # Query by username
     if user:
-        course = user["courses"].find_one({course_number: course_number})
+        course = user["courses"].find_one(
+            {course_number: course_number}
+        )  # Query by course number
         if course:
             return jsonify({"grades": course["grades"]}), 200
         else:
