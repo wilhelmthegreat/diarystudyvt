@@ -245,7 +245,7 @@ def create_app(username, course_number):
     else:
         return jsonify({"error": "Professor not found"}), 404
 
-
+@app.route("/professor/<username>/<course_number>/get_grades", methods=["POST"])
 def get_grades(username, course_number):
     user = users.find_one({username: username})  # Query by username
     if user:
