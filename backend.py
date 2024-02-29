@@ -162,7 +162,12 @@ def google_auth():
         user_info = {
             "isRegistered": True,
             "email": user["email"],
-            "jwt": jwt.encode({"email": user["email"]}, "secret")
+            "jwt": jwt.encode(
+                {
+                    "email": user["email"],
+                    "isProfessor": user["isProfessor"]
+                }, "secret"
+            )
         }
         return Response(
             response=html.escape(
@@ -187,25 +192,31 @@ def google_auth():
 
 
 # Function to create a new course
-@app.route("/professor/<username>/new_course", methods=["POST"])
+@app.route("/professor/new_course", methods=["POST"])
 def new_course(username):
-    professor = db.professors.find_one({"username": username})
-    if professor:
-        courses = professor["courses"]
-        course_number = request.json["course_number"]
-        course_name = request.json["course_name"]
-        credits = request.json["credits"]
-        course = {
-            "course_number": course_number,
-            "course_name": course_name,
-            "credits": credits,
-            "apps": [],
-        }
-        courses.append(course)
-        professors.update_one({"username": username}, {"$set": {"courses": courses}})
-        return jsonify({"message": "Course added successfully"}), 200
-    else:
-        return jsonify({"error": "Professor not found"}), 404
+    jwt_token = request.args.get("jwt")
+    if jwt_token:
+        try:
+            decoded = jwt.decode(jwt_token, "secret")
+            email = decoded["email"]
+            user = professors.find_one({"email": email})
+            if user:
+                courses = user["courses"]
+                course_number = request.json["course_number"]
+                course_name = request.json["course_name"]
+                course = {
+                    "course_number": course_number,
+                    "course_name": course_name,
+                    "apps": []
+                }
+                courses.append(course)
+                professors.update_one({"email": email}, {"$set": {"courses": courses}})
+        except jwt.ExpiredSignatureError: # Error Handling
+            return jsonify({"error": "Expired token"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Invalid token"}), 401
+        else:
+            return jsonify({"error": "Token not found"}), 404
 
 
 # Create new assignment/diary study
@@ -281,6 +292,12 @@ def register():
         'role': role
     }
     users.insert_one(user)
+    professor = {
+        'email': email
+    }
+    if (role == "professor"):
+        professors.insert_one(professor)
+
     return Response(
             response=html.escape(
                 json.dumps({"code": 200, "message": "User Added Successfully"}), quote=False
