@@ -108,9 +108,9 @@ def google_callback():
 @app.route("/auth/google", methods=["GET"])
 def google_auth():
     # Read the code from the request
-    code = request.args["code"]
+    code = request.args.get("code")
     # Sanitize the code to make it URL safe
-    code = quote(code)
+    code = str(quote(code))
     print(code)
     # Exchange the code for an access token
     # Use the access token to access the user id
