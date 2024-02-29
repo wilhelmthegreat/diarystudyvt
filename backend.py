@@ -108,9 +108,10 @@ def google_callback():
 @app.route("/auth/google", methods=["GET"])
 def google_auth():
     # Read the code from the request
-    code = request.args["code"]
+    code = request.args.get("code")
     # Sanitize the code to make it URL safe
-    code = quote(code)
+    code = str(quote(code))
+    print(code)
     # Exchange the code for an access token
     # Use the access token to access the user id
     token_url = "https://oauth2.googleapis.com/token"
@@ -123,6 +124,7 @@ def google_auth():
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     response = requests.post(token_url, data=data, headers=headers)
+    
     # Check if the request was successful
     if response.status_code != 200:
         print("Response:", response.json())
@@ -153,13 +155,11 @@ def google_auth():
     print("Email:", response.json()["email"])
     # Check if the user is already registered
     user = users.find_one(
-        {"openid": response.json()["id"], "email": response.json()["email"]}
+        {"email": response.json()["email"]}
     )
     if user:
         user_info = {
             "isRegistered": True,
-            "username": user["username"],
-            "avatar": user["avatar"],
             "email": user["email"],
         }
         return Response(
@@ -172,7 +172,6 @@ def google_auth():
     else:
         user_info = {
             "isRegistered": False,
-            "avatar": response.json()["picture"],
             "email": response.json()["email"],
         }
         return Response(
@@ -256,6 +255,37 @@ def get_grades(username, course_number):
             return jsonify({"grades": course["grades"]}), 200
         else:
             return jsonify({"error": "Course not found"}), 404
+
+@app.route("/users/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    first_name = data['firstName']
+    last_name = data['lastName']
+    email = data['email']
+    role = data['role']
+    if not (first_name and last_name and email and role):
+        return Response(
+            response=html.escape(
+                json.dumps({"code": 404, "message": "Missing data"}), quote=False
+            ),
+            status=404,
+            mimetype="application/json",
+        )
+    user = {
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': email,
+        'role': role
+    }
+    users.insert_one(user)
+    return Response(
+            response=html.escape(
+                json.dumps({"code": 200, "message": "User Added Successfully"}), quote=False
+            ),
+            status=200,
+            mimetype="application/json",
+        )
+
 
 
 if __name__ == "__main__":
