@@ -206,10 +206,9 @@ def new_course():
             email = decoded["email"]
             user = professors.find_one({"email": email})
             if user:
-                print(user)
                 courses = user["courses"]
-                course_number = request.json["course_number"]
-                course_name = request.json["course_name"]
+                course_number = request.json["courseNumber"]
+                course_name = request.json["courseName"]
                 course = {
                     "course_number": course_number,
                     "course_name": course_name,
@@ -217,6 +216,7 @@ def new_course():
                 }
                 courses.append(course)
                 professors.update_one({"email": email}, {"$set": {"courses": courses}})
+                return jsonify({"message": "Course added successfully"}), 200
         except jwt.ExpiredSignatureError: # Error Handling
             return jsonify({"error": "Expired token"}), 401
         except jwt.InvalidTokenError:
@@ -301,7 +301,8 @@ def register():
     }
     users.insert_one(user)
     professor = {
-        'email': email
+        'email': email,
+        'courses': []
     }
     if (role == "professor"):
         professors.insert_one(professor)
