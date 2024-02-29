@@ -7,6 +7,7 @@ import os
 import html
 from urllib.parse import quote
 from flask_cors import CORS, cross_origin
+import jwt
 
 load_dotenv()
 
@@ -161,6 +162,7 @@ def google_auth():
         user_info = {
             "isRegistered": True,
             "email": user["email"],
+            "jwt": jwt.encode({"email": user["email"]}, "secret")
         }
         return Response(
             response=html.escape(
@@ -173,6 +175,7 @@ def google_auth():
         user_info = {
             "isRegistered": False,
             "email": response.json()["email"],
+            "jwt": jwt.encode({"email": response.json()["email"]}, "secret")
         }
         return Response(
             response=html.escape(
