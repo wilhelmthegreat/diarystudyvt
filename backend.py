@@ -226,13 +226,24 @@ def new_course():
 
 
 # Create new assignment/diary study
-@app.route("/professor/<username>/courses", methods=["GET"])
-def get_courses(username):
-    professor = db.professors.find_one({"username": username})
-    if professor:
-        return jsonify({"courses": professor["courses"]}), 200
+@app.route("/professor/courses", methods=["GET"])
+def get_courses():
+    jwt_token = request.args.get("jwt")
+    if jwt_token:
+        try:
+            decoded = jwt.decode(jwt_token, "secret", algorithms=["HS256"])
+            email = decoded["email"]
+            professor = db.professors.find_one({"email": email})
+            if professor:
+                return jsonify({"courses": professor["courses"]}), 200
+            else:
+                return jsonify({"error": "Professor not found"}), 404
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Expired token"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Invalid token"}), 401
     else:
-        return jsonify({"error": "Professor not found"}), 404
+        return jsonify({"error": "Token not found"}), 404
 
 
 @app.route("/professor/<username>/<course_number>/create_app", methods=["POST"])
