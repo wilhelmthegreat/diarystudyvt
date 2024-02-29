@@ -8,6 +8,7 @@ import html
 from urllib.parse import quote
 from flask_cors import CORS, cross_origin
 import jwt
+import datetime
 
 load_dotenv()
 
@@ -165,7 +166,7 @@ def google_auth():
             "jwt": jwt.encode(
                 {
                     "email": user["email"],
-                    "isProfessor": user["isProfessor"]
+                    
                 }, "secret"
             )
         }
@@ -180,7 +181,11 @@ def google_auth():
         user_info = {
             "isRegistered": False,
             "email": response.json()["email"],
-            "jwt": jwt.encode({"email": response.json()["email"]}, "secret")
+            "jwt": jwt.encode(
+                {
+                    "email": response.json()["email"]
+                }, "secret"
+                )
         }
         return Response(
             response=html.escape(
@@ -193,14 +198,15 @@ def google_auth():
 
 # Function to create a new course
 @app.route("/professor/new_course", methods=["POST"])
-def new_course(username):
+def new_course():
     jwt_token = request.args.get("jwt")
     if jwt_token:
         try:
-            decoded = jwt.decode(jwt_token, "secret")
+            decoded = jwt.decode(jwt_token, "secret", algorithms=["HS256"])
             email = decoded["email"]
             user = professors.find_one({"email": email})
             if user:
+                print(user)
                 courses = user["courses"]
                 course_number = request.json["course_number"]
                 course_name = request.json["course_name"]
@@ -277,6 +283,7 @@ def register():
     last_name = data['lastName']
     email = data['email']
     role = data['role']
+    
     if not (first_name and last_name and email and role):
         return Response(
             response=html.escape(
@@ -289,7 +296,8 @@ def register():
         'first_name': first_name,
         'last_name': last_name,
         'email': email,
-        'role': role
+        'role': role,
+        'courses': []
     }
     users.insert_one(user)
     professor = {
