@@ -9,6 +9,7 @@ from urllib.parse import quote
 from flask_cors import CORS, cross_origin
 import jwt
 import datetime
+import database.connect as database
 
 load_dotenv()
 
@@ -28,6 +29,9 @@ db = client["database"]
 users = db["users"]
 professors = db["professors"]
 
+database_uri = os.getenv("DATABASE_URI")
+engine, Session, metadata = database.init_connection(database_uri, echo=False)
+session = Session()
 
 @app.route("/callback/google", methods=["GET"])
 def google_callback():
@@ -156,17 +160,14 @@ def google_auth():
     print("User ID:", response.json()["id"])
     print("Email:", response.json()["email"])
     # Check if the user is already registered
-    user = users.find_one(
-        {"email": response.json()["email"]}
-    )
-    if user:
+    user = database.get_user(session, response.json()["email"])
+    if user is not None:
         user_info = {
             "isRegistered": True,
             "email": user["email"],
             "jwt": jwt.encode(
                 {
                     "email": user["email"],
-                    
                 }, "secret"
             )
         }
@@ -185,7 +186,7 @@ def google_auth():
                 {
                     "email": response.json()["email"]
                 }, "secret"
-                )
+            )
         }
         return Response(
             response=html.escape(
@@ -204,18 +205,11 @@ def new_course():
         try:
             decoded = jwt.decode(jwt_token, "secret", algorithms=["HS256"])
             email = decoded["email"]
-            user = professors.find_one({"email": email})
-            if user:
-                courses = user["courses"]
+            user = database.get_user(session, email)
+            if user is not None and user.role == "professor":
                 course_number = request.json["courseNumber"]
                 course_name = request.json["courseName"]
-                course = {
-                    "course_number": course_number,
-                    "course_name": course_name,
-                    "apps": []
-                }
-                courses.append(course)
-                professors.update_one({"email": email}, {"$set": {"courses": courses}})
+                database.adding_course(session, course_name, course_number, email)
                 return jsonify({"message": "Course added successfully"}), 200
         except jwt.ExpiredSignatureError: # Error Handling
             return jsonify({"error": "Expired token"}), 401
@@ -226,18 +220,27 @@ def new_course():
 
 
 # Create new assignment/diary study
-@app.route("/professor/courses", methods=["GET"])
+@app.route("/courses", methods=["GET"])
 def get_courses():
     jwt_token = request.args.get("jwt")
     if jwt_token:
         try:
             decoded = jwt.decode(jwt_token, "secret", algorithms=["HS256"])
             email = decoded["email"]
-            professor = db.professors.find_one({"email": email})
-            if professor:
-                return jsonify({"courses": professor["courses"]}), 200
+            courses = database.get_courses(session, email)
+            if courses is not None:
+                all_courses = []
+                for course in courses:
+                    current_course = {
+                        "course_number": course.identifier,
+                        "course_name": course.name,
+                        "course_id": course.id
+                    }
+                    all_courses.append(current_course)
+                    
+                return jsonify({"courses": all_courses}), 200
             else:
-                return jsonify({"error": "Professor not found"}), 404
+                return jsonify({"error": "No courses found"}), 404
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "Expired token"}), 401
         except jwt.InvalidTokenError:
@@ -248,6 +251,7 @@ def get_courses():
 
 @app.route("/professor/<username>/<course_number>/create_app", methods=["POST"])
 def create_app(username, course_number):
+    # TODO: Change to use SQLAlchemy instead
     # Query by professor
     professor = db.professors.find_one({"username": username})
     if professor:
@@ -277,6 +281,7 @@ def create_app(username, course_number):
 
 @app.route("/professor/<username>/<course_number>/get_grades", methods=["POST"])
 def get_grades(username, course_number):
+    # TODO: Change to use SQLAlchemy instead, and fix the query
     user = users.find_one({username: username})  # Query by username
     if user:
         course = user["courses"].find_one(
@@ -303,20 +308,14 @@ def register():
             status=404,
             mimetype="application/json",
         )
-    user = {
-        'first_name': first_name,
-        'last_name': last_name,
-        'email': email,
-        'role': role,
-        'courses': []
-    }
-    users.insert_one(user)
-    professor = {
-        'email': email,
-        'courses': []
-    }
-    if (role == "professor"):
-        professors.insert_one(professor)
+    # user = {
+    #     'first_name': first_name,
+    #     'last_name': last_name,
+    #     'email': email,
+    #     'role': role,
+    #     'courses': []
+    # }
+    database.adding_user(session, first_name=first_name, last_name=last_name, email=email, role=role)
 
     return Response(
             response=html.escape(
