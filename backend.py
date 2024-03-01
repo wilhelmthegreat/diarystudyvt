@@ -164,10 +164,10 @@ def google_auth():
     if user is not None:
         user_info = {
             "isRegistered": True,
-            "email": user["email"],
+            "email": user.email,
             "jwt": jwt.encode(
                 {
-                    "email": user["email"],
+                    "email": user.email,
                 }, "secret"
             )
         }
