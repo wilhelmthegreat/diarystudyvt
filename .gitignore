@@ -1551,3 +1551,8 @@ build/
 
 # Ignore client secret of Google OAuth
 client_secret.json
+
+# Ignore the potential database file
+*.sqlite
+*.sqlite3
+*.db
