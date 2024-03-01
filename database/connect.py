@@ -79,6 +79,9 @@ def get_course(session, course_id):
     """
     This function returns a course from the database.
     """
+    # Check if session is ready, if not, wait for it
+    while not session.is_active:
+        pass
     course = session.query(models.Course).filter_by(id=course_id).first()
     if course is not None:
         return course
