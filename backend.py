@@ -33,6 +33,7 @@ database_uri = os.getenv("DATABASE_URI")
 engine, Session, metadata = database.init_connection(database_uri, echo=False)
 session = Session()
 
+
 @app.route("/callback/google", methods=["GET"])
 def google_callback():
     # Check if user denied access
@@ -130,7 +131,7 @@ def google_auth():
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     response = requests.post(token_url, data=data, headers=headers)
-    
+
     # Check if the request was successful
     if response.status_code != 200:
         print("Response:", response.json())
@@ -168,8 +169,9 @@ def google_auth():
             "jwt": jwt.encode(
                 {
                     "email": user.email,
-                }, "secret"
-            )
+                },
+                "secret",
+            ),
         }
         return Response(
             response=html.escape(
@@ -182,11 +184,7 @@ def google_auth():
         user_info = {
             "isRegistered": False,
             "email": response.json()["email"],
-            "jwt": jwt.encode(
-                {
-                    "email": response.json()["email"]
-                }, "secret"
-            )
+            "jwt": jwt.encode({"email": response.json()["email"]}, "secret"),
         }
         return Response(
             response=html.escape(
@@ -211,7 +209,7 @@ def new_course():
                 course_name = request.json["courseName"]
                 database.adding_course(session, course_name, course_number, email)
                 return jsonify({"message": "Course added successfully"}), 200
-        except jwt.ExpiredSignatureError: # Error Handling
+        except jwt.ExpiredSignatureError:  # Error Handling
             return jsonify({"error": "Expired token"}), 401
         except jwt.InvalidTokenError:
             return jsonify({"error": "Invalid token"}), 401
@@ -234,10 +232,10 @@ def get_courses():
                     current_course = {
                         "course_number": course.identifier,
                         "course_name": course.name,
-                        "course_id": course.id
+                        "course_id": course.id,
                     }
                     all_courses.append(current_course)
-                    
+
                 return jsonify({"courses": all_courses}), 200
             else:
                 return jsonify({"error": "No courses found"}), 404
@@ -279,6 +277,37 @@ def create_app(username, course_number):
     else:
         return jsonify({"error": "Professor not found"}), 404
 
+
+@app.route("/professor/<username>/<course_number>/edit_apps", methods=["POST"])
+def edit_app(username, course_number, app_name):
+    professor = db.professors.find_one({"username": username})
+    if professor:
+        course = db.courses.find_one(
+            {"course_number": course_number}
+        )  # Query by course number
+        if course:
+            app = course["apps"].find_one({"app_name": app_name})  # Query by app name
+            if app:  # Updating attributes if app exists
+                intro = request.json["intro"]
+                start_date = request.json["start_date"]
+                end_date = request.json["end_date"]
+                num_entries = request.json["num_entries"]
+                max_students = request.json["max_students"]
+                app = {
+                    "intro": intro,
+                    "start_date": start_date,
+                    "end_date": end_date,
+                    "num_entries": num_entries,
+                    "max_students": max_students,
+                }
+                course["apps"].update_one(
+                    {"app_name": app_name}, {"$set": {"apps": app}}
+                )
+                return jsonify({"message": "App updated successfully"}), 200
+            else:
+                return jsonify({"error": "App not found"}), 404
+
+
 @app.route("/professor/<username>/<course_number>/get_grades", methods=["POST"])
 def get_grades(username, course_number):
     # TODO: Change to use SQLAlchemy instead, and fix the query
@@ -292,14 +321,15 @@ def get_grades(username, course_number):
         else:
             return jsonify({"error": "Course not found"}), 404
 
+
 @app.route("/users/register", methods=["POST"])
 def register():
     data = request.get_json()
-    first_name = data['firstName']
-    last_name = data['lastName']
-    email = data['email']
-    role = data['role']
-    
+    first_name = data["firstName"]
+    last_name = data["lastName"]
+    email = data["email"]
+    role = data["role"]
+
     if not (first_name and last_name and email and role):
         return Response(
             response=html.escape(
@@ -315,15 +345,18 @@ def register():
     #     'role': role,
     #     'courses': []
     # }
-    database.adding_user(session, first_name=first_name, last_name=last_name, email=email, role=role)
+    database.adding_user(
+        session, first_name=first_name, last_name=last_name, email=email, role=role
+    )
 
     return Response(
-            response=html.escape(
-                json.dumps({"code": 200, "message": "User Added Successfully"}), quote=False
-            ),
-            status=200,
-            mimetype="application/json",
-        )
+        response=html.escape(
+            json.dumps({"code": 200, "message": "User Added Successfully"}), quote=False
+        ),
+        status=200,
+        mimetype="application/json",
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5001)
