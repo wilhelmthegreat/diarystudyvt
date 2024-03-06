@@ -278,7 +278,7 @@ def create_app(username, course_number):
         return jsonify({"error": "Professor not found"}), 404
 
 
-@app.route("/professor/<username>/<course_number>/edit_apps", methods=["POST"])
+@app.route("/professor/<username>/<course_number>/edit_apps", methods=["PUT"])
 def edit_app(username, course_number, app_name):
     professor = db.professors.find_one({"username": username})
     if professor:
