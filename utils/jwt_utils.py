@@ -42,23 +42,47 @@ def validate_token(token: str) -> dict:
         return {
             "code": 0,
             "message": "",
-            "payload": payload,
+            "data": payload,
         }
     except jwt.ExpiredSignatureError:
         return {
             "code": -104,
             "message": "Token Expired",
-            "payload": {},
+            "data": {},
         }
     except jwt.InvalidTokenError:
         return {
             "code": -105,
             "message": "Invalid Token",
-            "payload": {},
+            "data": {},
         }
     except Exception as e:
         return {
             "code": -1,
             "message": str(e),
-            "payload": {},
+            "data": {},
         }
+
+
+def validate_token_in_request(request) -> dict:
+    """This method will validate the JWT token in the request provided by
+    flask and return the payload extracted from the token.
+
+    Args:
+        request (Request): The request object.
+
+    Returns:
+        dict: The payload of the token with code and message indicating if the token is valid.
+            0: Valid token.
+            -104: Token Expired.
+            -105: Invalid Token.
+            -1: Error that is not handled correctly.
+    """
+    token = request.args.get("jwt")
+    if token is None:
+        return {
+            "code": -105,
+            "message": "Invalid Token",
+            "data": {},
+        }
+    return validate_token(token)
