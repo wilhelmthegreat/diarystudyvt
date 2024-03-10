@@ -8,8 +8,10 @@ import html
 from urllib.parse import quote
 from flask_cors import CORS, cross_origin
 import jwt
-import datetime
 import database.connect as database
+from config.jwt import jwt_algorithm, jwt_private_key, jwt_public_key
+from config.flask import bind_host, flask_debug, port
+from routes.auth import auth_routes
 
 load_dotenv()
 
@@ -34,166 +36,7 @@ engine, Session, metadata = database.init_connection(database_uri, echo=False)
 session = Session()
 
 
-@app.route("/callback/google", methods=["GET"])
-def google_callback():
-    # Check if user denied access
-    if "error" in request.args:
-        return Response(
-            response=html.escape(
-                json.dumps(
-                    {
-                        "code": -101,
-                        "message": "User denied access",
-                        "data": request.args,
-                    }
-                ),
-                quote=False,
-            ),
-            status=400,
-            mimetype="application/json",
-        )
-    # Read the code from the request
-    code = request.args["code"]
-    # Sanitize the code to make it URL safe
-    code = quote(code)
-    # Exchange the code for an access token
-    # Use the access token to access the user id
-    token_url = "https://oauth2.googleapis.com/token"
-    data = {
-        "code": code,
-        "client_id": client_secrets["web"]["client_id"],
-        "client_secret": client_secrets["web"]["client_secret"],
-        "redirect_uri": client_secrets["web"]["redirect_uris"][0],
-        "grant_type": "authorization_code",
-    }
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    response = requests.post(token_url, data=data, headers=headers)
-    # Check if the request was successful
-    if response.status_code != 200:
-        return Response(
-            response=html.escape(
-                json.dumps(
-                    {
-                        "code": -102,
-                        "message": "Failed to obtain access token",
-                        "data": response.json(),
-                    }
-                ),
-                quote=False,
-            ),
-            status=400,
-            mimetype="application/json",
-        )
-    # Access the user id
-    access_token = response.json()["access_token"]
-    # Santize the access token to make it URL safe
-    access_token = quote(access_token)
-    userinfo_url = (
-        f"https://www.googleapis.com/oauth2/v1/userinfo?access_token={access_token}"
-    )
-    response = requests.get(userinfo_url)
-    print("Successfully obtained Google user Info!")
-    print("User ID:", response.json()["id"])
-    print("Email:", response.json()["email"])
-    return Response(
-        response=html.escape(
-            json.dumps(
-                {
-                    "code": 0,
-                    "message": "Successfully obtained Google user info!",
-                    "data": response.json(),
-                }
-            ),
-            quote=False,
-        ),
-        status=200,
-        mimetype="application/json",
-    )
-
-
-@cross_origin()
-@app.route("/auth/google", methods=["GET"])
-def google_auth():
-    # Read the code from the request
-    code = request.args.get("code")
-    # Sanitize the code to make it URL safe
-    code = str(quote(code))
-    print(code)
-    # Exchange the code for an access token
-    # Use the access token to access the user id
-    token_url = "https://oauth2.googleapis.com/token"
-    data = {
-        "code": code,
-        "client_id": client_secrets["web"]["client_id"],
-        "client_secret": client_secrets["web"]["client_secret"],
-        "redirect_uri": client_secrets["web"]["redirect_uris"][1],
-        "grant_type": "authorization_code",
-    }
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    response = requests.post(token_url, data=data, headers=headers)
-
-    # Check if the request was successful
-    if response.status_code != 200:
-        print("Response:", response.json())
-        return Response(
-            response=html.escape(
-                json.dumps(
-                    {
-                        "code": -102,
-                        "message": "Failed to obtain access token",
-                        "data": response.json(),
-                    }
-                ),
-                quote=False,
-            ),
-            status=400,
-            mimetype="application/json",
-        )
-    # Access the user id
-    access_token = response.json()["access_token"]
-    # Santize the access token to make it URL safe
-    access_token = quote(access_token)
-    userinfo_url = (
-        f"https://www.googleapis.com/oauth2/v1/userinfo?access_token={access_token}"
-    )
-    response = requests.get(userinfo_url)
-    print("Successfully obtained Google user Info!")
-    print("User ID:", response.json()["id"])
-    print("Email:", response.json()["email"])
-    # Check if the user is already registered
-    user = database.get_user(session, response.json()["email"])
-    if user is not None:
-        user_info = {
-            "isRegistered": True,
-            "email": user.email,
-            "jwt": jwt.encode(
-                {
-                    "email": user.email,
-                },
-                "secret",
-            ),
-        }
-        return Response(
-            response=html.escape(
-                json.dumps({"code": 0, "message": "", "data": user_info}), quote=False
-            ),
-            status=200,
-            mimetype="application/json",
-        )
-    else:
-        user_info = {
-            "isRegistered": False,
-            "email": response.json()["email"],
-            "jwt": jwt.encode({"email": response.json()["email"]}, "secret"),
-        }
-        return Response(
-            response=html.escape(
-                json.dumps({"code": 0, "message": "", "data": user_info}), quote=False
-            ),
-            status=200,
-            mimetype="application/json",
-        )
-
+app.register_blueprint(auth_routes, url_prefix="/auth")
 
 # Function to create a new course
 @app.route("/professor/new_course", methods=["POST"])
@@ -201,7 +44,7 @@ def new_course():
     jwt_token = request.args.get("jwt")
     if jwt_token:
         try:
-            decoded = jwt.decode(jwt_token, "secret", algorithms=["HS256"])
+            decoded = jwt.decode(jwt_token, jwt_public_key(), algorithms=jwt_algorithm())
             email = decoded["email"]
             user = database.get_user(session, email)
             if user is not None and user.role == "professor":
@@ -222,7 +65,7 @@ def get_user_info():
     jwt_token = request.args.get("jwt")
     if jwt_token:
         try:
-            decoded = jwt.decode(jwt_token, "secret", algorithms=["HS256"])
+            decoded = jwt.decode(jwt_token, jwt_public_key(), algorithms=jwt_algorithm())
             email = decoded["email"]
             user = database.get_user(session, email)
             if user is not None:
@@ -245,7 +88,7 @@ def get_courses():
     jwt_token = request.args.get("jwt")
     if jwt_token:
         try:
-            decoded = jwt.decode(jwt_token, "secret", algorithms=["HS256"])
+            decoded = jwt.decode(jwt_token, jwt_public_key(), algorithms=jwt_algorithm())
             email = decoded["email"]
             courses = database.get_courses(session, email)
             if courses is not None:
@@ -417,4 +260,4 @@ def register():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    app.run(debug=flask_debug(), host=bind_host(), port=port())
