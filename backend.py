@@ -13,6 +13,7 @@ from config.jwt import jwt_algorithm, jwt_private_key, jwt_public_key
 from config.flask import bind_host, flask_debug, port
 from routes.auth import auth_routes
 from routes.users import users_routes
+from routes.courses import courses_routes
 
 load_dotenv()
 
@@ -39,6 +40,7 @@ session = Session()
 
 app.register_blueprint(auth_routes, url_prefix="/auth")
 app.register_blueprint(users_routes, url_prefix="/users")
+app.register_blueprint(courses_routes, url_prefix="/courses")
 
 # Function to create a new course
 @app.route("/professor/new_course", methods=["POST"])
@@ -60,37 +62,6 @@ def new_course():
             return jsonify({"error": "Invalid token"}), 401
         else:
             return jsonify({"error": "Token not found"}), 404
-
-
-# Create new assignment/diary study
-@app.route("/courses", methods=["GET"])
-def get_courses():
-    jwt_token = request.args.get("jwt")
-    if jwt_token:
-        try:
-            decoded = jwt.decode(jwt_token, jwt_public_key(), algorithms=jwt_algorithm())
-            email = decoded["email"]
-            courses = database.get_courses(session, email)
-            if courses is not None:
-                all_courses = []
-                for course in courses:
-                    current_course = {
-                        "course_number": course.identifier,
-                        "course_name": course.name,
-                        "course_id": course.id,
-                    }
-                    all_courses.append(current_course)
-
-                return jsonify({"courses": all_courses}), 200
-            else:
-                return jsonify({"error": "No courses found"}), 404
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Expired token"}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({"error": "Invalid token"}), 401
-    else:
-        return jsonify({"error": "Token not found"}), 404
-
 
 # Function to edit an existing course
 @app.route("/professor/edit_course", methods=["PUT"])
