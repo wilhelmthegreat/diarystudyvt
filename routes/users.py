@@ -98,6 +98,7 @@ def register():
     session = Session()
     user = database.get_user(session=session, email=email)
     if user is not None:
+        session.close()
         return client_error_response(
             data={},
             internal_code=-402,
@@ -105,19 +106,21 @@ def register():
             message="User already exists",
         )
     if email != payload["email"]:
+        session.close()
         return client_error_response(
             data={},
             internal_code=-403,
             status_code=401,
             message="Unauthorized",
         )
-    user = database.adding_user(
+    database.adding_user(
         session=session,
         first_name=first_name,
         last_name=last_name,
         email=email,
         role=role,
     )
+    session.close()
     return success_response(
         data={
             "jwt": generate_token(
