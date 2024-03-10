@@ -1,0 +1,1 @@
+# This file ensures config can be imported from the package
