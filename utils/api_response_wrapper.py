@@ -18,7 +18,7 @@ import json
 
 
 def success_response(
-    data: dict, internal_code: int = 0, status_code: int = 200, message: str = ""
+    data, internal_code: int = 0, status_code: int = 200, message: str = ""
 ) -> Response:
     """This method will wrap the successful API response in a standard format for the client.
 
