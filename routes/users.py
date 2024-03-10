@@ -1,3 +1,24 @@
+"""
+This module provides the blueprint for the users routes.
+
+
+Functions:
+    users_routes: A Flask blueprint for the users routes.
+    users_routes.get_user_info(): A route to get the user information.
+    users_routes.register(): A route to register a new user.
+    
+
+Usage:
+    This module is intended to be used as a blueprint for the users routes in
+    the main app. It should be imported and registered in the main app file.
+    Example (in the backend.py file):
+        from routes.users import users_routes
+        # Below assumes you want the users routes to be at /users
+        app.register_blueprint(users_routes, url_prefix='/users')
+
+Author:
+    Jiacheng Zhao (John)
+"""
 from flask import Blueprint, request, Response
 from urllib.parse import quote
 import html
