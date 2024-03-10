@@ -1554,3 +1554,9 @@ client_secret.json
 *.sqlite
 *.sqlite3
 *.db
+
+*.pem
+
+# Ignore all files in the config/secret directory, keeping the README
+config/secret/*
+!config/secret/README.md
