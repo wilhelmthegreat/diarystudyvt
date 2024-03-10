@@ -220,7 +220,6 @@ node_modules
 _book
 
 # LemonStand
-/config/*
 /controllers/*
 /init/*
 /logs/*
@@ -606,7 +605,6 @@ sites/*/translations
 /includes
 /misc
 /profiles
-/scripts
 /themes
 
 # CodeSniffer
