@@ -3,6 +3,8 @@ This file contains the flask application configuration.
 
 
 Functions:
+    bind_host(): This method will read the bind host from the `.env` file and
+        return it as a string.
     flask_debug(): This method will read the debug flag from the `.env`
         file and return it as a boolean to enable or disable Flask's
         debug mode.
@@ -16,6 +18,29 @@ import os
 dotenv_path = os.path.join(os.path.dirname(__file__), 'secret', '.env')
 
 load_dotenv(dotenv_path)
+
+
+def bind_host() -> str:
+    """This method will read the bind host from the `.env` file and
+    return it as a string.
+    
+    
+    Args:
+        None.
+    
+    
+    Returns:
+        str: The bind host from the environment.
+    
+    
+    Raises:
+        KeyError: If the `HOST` key is not found in the environment.
+    """
+    obtained_bind_host = os.getenv("FLASK_HOST")
+    if obtained_bind_host is None:
+        raise KeyError("FLASK_HOST not found in the environment.")
+    return obtained_bind_host
+
 
 def flask_debug() -> bool:
     """This method will read the debug flag from the `.env`
