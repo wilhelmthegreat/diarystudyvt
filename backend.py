@@ -12,6 +12,7 @@ import database.connect as database
 from config.jwt import jwt_algorithm, jwt_private_key, jwt_public_key
 from config.flask import bind_host, flask_debug, port
 from routes.auth import auth_routes
+from routes.users import users_routes
 
 load_dotenv()
 
@@ -37,6 +38,7 @@ session = Session()
 
 
 app.register_blueprint(auth_routes, url_prefix="/auth")
+app.register_blueprint(users_routes, url_prefix="/users")
 
 # Function to create a new course
 @app.route("/professor/new_course", methods=["POST"])
@@ -58,28 +60,6 @@ def new_course():
             return jsonify({"error": "Invalid token"}), 401
         else:
             return jsonify({"error": "Token not found"}), 404
-
-
-@app.route("/users", methods=["GET"])
-def get_user_info():
-    jwt_token = request.args.get("jwt")
-    if jwt_token:
-        try:
-            decoded = jwt.decode(jwt_token, jwt_public_key(), algorithms=jwt_algorithm())
-            email = decoded["email"]
-            user = database.get_user(session, email)
-            if user is not None:
-                user_info = {
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "email": user.email,
-                    "role": user.role,
-                }
-                return jsonify({"user": user_info}), 200
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Expired token"}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({"error": "Invalid token"}), 401
 
 
 # Create new assignment/diary study
@@ -221,42 +201,6 @@ def get_grades(username, course_number):
             return jsonify({"grades": course["grades"]}), 200
         else:
             return jsonify({"error": "Course not found"}), 404
-
-
-@app.route("/users/register", methods=["POST"])
-def register():
-    data = request.get_json()
-    first_name = data["firstName"]
-    last_name = data["lastName"]
-    email = data["email"]
-    role = data["role"]
-
-    if not (first_name and last_name and email and role):
-        return Response(
-            response=html.escape(
-                json.dumps({"code": 404, "message": "Missing data"}), quote=False
-            ),
-            status=404,
-            mimetype="application/json",
-        )
-    # user = {
-    #     'first_name': first_name,
-    #     'last_name': last_name,
-    #     'email': email,
-    #     'role': role,
-    #     'courses': []
-    # }
-    database.adding_user(
-        session, first_name=first_name, last_name=last_name, email=email, role=role
-    )
-
-    return Response(
-        response=html.escape(
-            json.dumps({"code": 200, "message": "User Added Successfully"}), quote=False
-        ),
-        status=200,
-        mimetype="application/json",
-    )
 
 
 if __name__ == "__main__":
