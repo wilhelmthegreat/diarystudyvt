@@ -108,5 +108,6 @@ def new_course():
         course_number=course_number,
         professor_email=email
     )
+    session.close()
     return success_response(data={})
     
