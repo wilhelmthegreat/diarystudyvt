@@ -53,6 +53,7 @@ def get_user_info():
     session = Session()
     user = database.get_user(session=session, email=email)
     if user is None:
+        session.close()
         return server_error_response(
             data={},
             internal_code=-1,
@@ -65,6 +66,7 @@ def get_user_info():
         "email": user.email,
         "role": user.role,
     }
+    session.close()
     return success_response(data={"user": user_info})
     
     
