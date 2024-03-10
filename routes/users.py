@@ -37,6 +37,7 @@ from utils.api_response_wrapper import (
 users_routes = Blueprint("users_routes", __name__)
 
 @users_routes.route("/", methods=["GET"])
+@users_routes.route("", methods=["GET"])
 def get_user_info():
     """This route will return the user information."""
     jwt_result = validate_token_in_request(request)
@@ -72,6 +73,7 @@ def get_user_info():
     
 
 @users_routes.route("/register", methods=["POST"])
+@users_routes.route("/register/", methods=["POST"])
 def register():
     """This route will register a new user."""
     jwt_result = validate_token_in_request(request)

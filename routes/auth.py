@@ -41,6 +41,7 @@ auth_routes = Blueprint("auth_routes", __name__)
 
 
 @auth_routes.route("/google", methods=["GET"])
+@auth_routes.route("/google/", methods=["GET"])
 def google_auth():
     """This route handles the Google OAuth2 login process."""
     # Check if the code is in the request
