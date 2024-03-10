@@ -21,7 +21,7 @@ def generate_token(payload: dict) -> str:
     Returns:
         str: The generated JWT token.
     """
-    return jwt.encode(payload, jwt_private_key, algorithm=jwt_algorithm)
+    return jwt.encode(payload, jwt_private_key(), algorithm=jwt_algorithm())
 
 
 def validate_token(token: str) -> dict:
@@ -38,7 +38,7 @@ def validate_token(token: str) -> dict:
             -1: Error that is not handled correctly.
     """
     try:
-        payload = jwt.decode(token, jwt_public_key, algorithms=[jwt_algorithm])
+        payload = jwt.decode(token, jwt_public_key(), algorithms=[jwt_algorithm()])
         return {
             "code": 0,
             "message": "",
