@@ -20,6 +20,7 @@ Usage:
 Author:
     Jiacheng Zhao (John)
 """
+
 from flask import Blueprint, request, Response
 from urllib.parse import quote
 import html
@@ -28,16 +29,28 @@ import json
 from config.third_party_secrets import google_client_secrets
 from config.database import database_uri
 import database.connect as database
-import jwt
+from utils import jwt_utils
+from utils.api_response_wrapper import (
+    success_response,
+    client_error_response,
+    server_error_response,
+)
 
 # Set up the routes blueprint
-auth_routes = Blueprint('auth_routes', __name__)
+auth_routes = Blueprint("auth_routes", __name__)
 
 
-@auth_routes.route('/google', methods=["GET"])
+@auth_routes.route("/google", methods=["GET"])
 def google_auth():
-    """This route handles the Google OAuth2 login process.
-    """
+    """This route handles the Google OAuth2 login process."""
+    # Check if the code is in the request
+    if "code" not in request.args:
+        return client_error_response(
+            data={},
+            internal_code=-102,
+            status_code=400,
+            message="No code provided",
+        )
     # Read the code from the request
     code = request.args.get("code")
     # Sanitize the code to make it URL safe
@@ -60,19 +73,11 @@ def google_auth():
     # Check if the request was successful
     if response.status_code != 200:
         print("Response:", response.json())
-        return Response(
-            response=html.escape(
-                json.dumps(
-                    {
-                        "code": -102,
-                        "message": "Failed to obtain access token",
-                        "data": response.json(),
-                    }
-                ),
-                quote=False,
-            ),
-            status=400,
-            mimetype="application/json",
+        return server_error_response(
+            data=response.json(),
+            internal_code=-102,
+            status_code=500,
+            message="Failed to obtain access token",
         )
     # Access the user id
     access_token = response.json()["access_token"]
@@ -85,7 +90,7 @@ def google_auth():
     print("Successfully obtained Google user Info!")
     print("User ID:", response.json()["id"])
     print("Email:", response.json()["email"])
-    engine, Session, metadata = database.init_connection(database_uri(), echo=False)
+    _, Session, _ = database.init_connection(database_uri(), echo=False)
     session = Session()
     # Check if the user is already registered
     user = database.get_user(session, response.json()["email"])
@@ -93,31 +98,20 @@ def google_auth():
         user_info = {
             "isRegistered": True,
             "email": user.email,
-            "jwt": jwt.encode(
+            "jwt": jwt_utils.generate_token(
                 {
                     "email": user.email,
-                },
-                "secret",
+                }
             ),
         }
-        return Response(
-            response=html.escape(
-                json.dumps({"code": 0, "message": "", "data": user_info}), quote=False
-            ),
-            status=200,
-            mimetype="application/json",
-        )
+        session.close()
+        return success_response(user_info, internal_code=0, status_code=200, message="")
     else:
         user_info = {
             "isRegistered": False,
             "email": response.json()["email"],
-            "jwt": jwt.encode({"email": response.json()["email"]}, "secret"),
+            "jwt": jwt_utils.generate_token({"email": response.json()["email"]}),
         }
-        return Response(
-            response=html.escape(
-                json.dumps({"code": 0, "message": "", "data": user_info}), quote=False
-            ),
-            status=200,
-            mimetype="application/json",
-        )
-
+        session.close()
+        return success_response(user_info, internal_code=0, status_code=200, message="")
+    
