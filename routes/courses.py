@@ -11,11 +11,9 @@ from utils.api_response_wrapper import (
 )
 
 courses_routes = Blueprint("courses_routes", __name__)
-CORS(courses_routes)
 
 @courses_routes.route("/", methods=["GET"])
 @courses_routes.route("", methods=["GET"])
-@cross_origin()
 def get_courses():  
     """This route will return courses the user is enrolled in."""
     jwt_result = validate_token_in_request(request)
@@ -55,7 +53,6 @@ def get_courses():
 
 @courses_routes.route("/", methods=["POST"])
 @courses_routes.route("", methods=["POST"])
-@cross_origin()
 def new_course():
     """This route will create a new course."""
     jwt_result = validate_token_in_request(request)
@@ -110,4 +107,46 @@ def new_course():
     )
     session.close()
     return success_response(data={})
-    
+
+
+@courses_routes.route("/<course_id>", methods=["GET"])
+def get_course(course_id: int):
+    """This route will return the course information."""
+    jwt_result = validate_token_in_request(request)
+    if jwt_result["code"] != 0:
+        return client_error_response(
+            data={},
+            internal_code=jwt_result["code"],
+            status_code=401,
+            message=jwt_result["message"],
+        )
+    payload = jwt_result["data"]
+    email = payload["email"]
+    _, Session, _ = database.init_connection(database_uri(), echo=False)
+    session = Session()
+    user = database.get_user(session=session, email=email)
+    if user is None:
+        session.close()
+        return server_error_response(
+            data={},
+            internal_code=-1,
+            status_code=500,
+            message="User not found",
+        )
+    course = database.get_course(course_id=course_id, session=session)
+    if course is None:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-402,
+            status_code=404,
+            message="Course not found",
+        )
+    session.close()
+    return success_response(
+        data={
+            "course_number": course.identifier,
+            "course_name": course.name,
+            "course_id": course.id,
+        }
+    )
