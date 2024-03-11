@@ -124,29 +124,21 @@ def get_course(course_id: int):
     email = payload["email"]
     _, Session, _ = database.init_connection(database_uri(), echo=False)
     session = Session()
-    user = database.get_user(session=session, email=email)
-    if user is None:
-        session.close()
-        return server_error_response(
-            data={},
-            internal_code=-1,
-            status_code=500,
-            message="User not found",
-        )
-    course = database.get_course(course_id=course_id, session=session)
+    # Get the course from the database
+    course = database.get_course(session=session, course_id=course_id, user_email=email)
     if course is None:
         session.close()
         return client_error_response(
             data={},
             internal_code=-402,
             status_code=404,
-            message="Course not found",
+            message="Course not found or user is not enrolled in the course",
         )
-    session.close()
-    return success_response(
-        data={
+    else:
+        course_info = {
             "course_number": course.identifier,
             "course_name": course.name,
             "course_id": course.id,
         }
-    )
+        session.close()
+        return success_response(data={"course": course_info})

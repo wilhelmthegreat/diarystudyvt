@@ -2,6 +2,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy import event, MetaData
 from sqlalchemy.orm import sessionmaker, scoped_session
 from . import models
+import datetime
 
 
 def init_connection(uri, echo=False):
@@ -82,18 +83,42 @@ def adding_course(session, course_name, course_number, professor_email):
         return False
 
 
-def get_course(session, course_id):
+def get_course(session, course_id: int, user_email: str):
     """
     This function returns a course from the database.
     """
-    # Check if session is ready, if not, wait for it
-    while not session.is_active:
-        pass
-    course = session.query(models.Course).filter_by(id=course_id).first()
-    if course is not None:
-        return course
-    else:
+    # Get the user from the database
+    user = get_user(session, user_email)
+    if user is None:
         return None
+    # Get the course from the database
+    course = session.query(models.Course).filter_by(id=course_id).first()
+    # Check if the user is a student or a professor
+    if user.role == "student":
+        # Check the table course_student to get the course of the student
+        if course is not None:
+            if user.students[0] in course.students:
+                return course
+            else:
+                return None
+        else:
+            return None
+    elif user.role == "professor":
+        # Check the table course_professor to get the course of the professor
+        if course is not None:
+            if user.professors[0] in course.professors:
+                return course
+            else:
+                return None
+        else:
+            return None
+    else:
+        raise ValueError(
+            f"User role {user.role} is not handled correctly. " +
+            "Please check if the role is correct."
+        )
+        
+        
 
 
 def edit_course(session, course_id, course_name, course_number):
