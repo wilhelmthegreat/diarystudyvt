@@ -41,27 +41,6 @@ app.register_blueprint(users_routes, url_prefix="/users")
 app.register_blueprint(courses_routes, url_prefix="/courses")
 app.register_blueprint(apps_routes, url_prefix="/courses/<course_id>/apps")
 
-# Function to create a new course
-@app.route("/professor/new_course", methods=["POST"])
-def new_course():
-    jwt_token = request.args.get("jwt")
-    if jwt_token:
-        try:
-            decoded = jwt.decode(jwt_token, jwt_public_key(), algorithms=jwt_algorithm())
-            email = decoded["email"]
-            user = database.get_user(session, email)
-            if user is not None and user.role == "professor":
-                course_number = request.json["courseNumber"]
-                course_name = request.json["courseName"]
-                database.adding_course(session, course_name, course_number, email)
-                return jsonify({"message": "Course added successfully"}), 200
-        except jwt.ExpiredSignatureError:  # Error Handling
-            return jsonify({"error": "Expired token"}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({"error": "Invalid token"}), 401
-        else:
-            return jsonify({"error": "Token not found"}), 404
-
 # Function to edit an existing course
 @app.route("/professor/edit_course", methods=["PUT"])
 def edit_course(course_id):
@@ -84,49 +63,6 @@ def edit_course(course_id):
                 return jsonify({"error": "Course not found"}), 404
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "Expired token"}), 401
-
-
-@app.route("/professor/<username>/<course_number>/create_app", methods=["POST"])
-def create_app(username, course_number):
-    # TODO: Change to use SQLAlchemy instead
-    # Query by professor
-    professor = db.professors.find_one({"username": username})
-    if professor:
-        # Query by course
-        course = db.courses.find_one({"course_number": course_number})
-        if course:
-            # Subject to change depending on frontend
-            apps = course_number["apps"]
-            intro = request.json["intro"]
-            start_date = request.json["start_date"]
-            end_date = request.json["end_date"]
-            num_entries = request.json["num_entries"]
-            max_students = request.json["max_students"]
-            app = {
-                "intro": intro,
-                "start_date": start_date,
-                "end_date": end_date,
-                "num_entries": num_entries,
-                "max_students": max_students,
-            }
-            apps.update_one({"course_number": course_number}, {"$set": {"apps": app}})
-            return jsonify({"message": "App added successfully"}), 200
-        else:
-            return jsonify({"error": "Course not found"}), 404
-    else:
-        return jsonify({"error": "Professor not found"}), 404
-
-
-@app.route("/professor/<username>/<course_number>/get_apps", methods=["GET"])
-def get_apps(username, course_number):
-    professor = db.professors.find_one({"username": username})
-    if professor:
-        course = db.courses.find_one({"course_number": course_number})
-        if course:
-            apps = course["apps"]
-            return jsonify({"apps": apps}), 200
-        else:
-            return jsonify({"error": "Course not found"}), 404
 
 
 @app.route("/professor/<username>/<course_number>/edit_apps", methods=["PUT"])
