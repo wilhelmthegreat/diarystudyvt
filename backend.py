@@ -11,15 +11,13 @@ import jwt
 import database.connect as database
 from config.jwt import jwt_algorithm, jwt_private_key, jwt_public_key
 from config.flask import bind_host, flask_debug, port
+from config.database import database_uri
 from routes.auth import auth_routes
 from routes.users import users_routes
 from routes.courses import courses_routes
 
-load_dotenv()
-
-# Load the client secrets to access the Google API
-with open("client_secret.json", "r") as f:
-    client_secrets = json.load(f)
+dotenv_path = os.path.join(os.path.dirname(__file__), 'config', 'secret', '.env')
+load_dotenv(dotenv_path)
 
 # Retrieve environment variables
 MONGO_HOST = os.getenv("MONGO_HOST")
@@ -33,8 +31,7 @@ db = client["database"]
 users = db["users"]
 professors = db["professors"]
 
-database_uri = os.getenv("DATABASE_URI")
-engine, Session, metadata = database.init_connection(database_uri, echo=False)
+engine, Session, metadata = database.init_connection(database_uri(), echo=False)
 session = Session()
 
 
