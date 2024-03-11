@@ -142,3 +142,56 @@ def get_course(course_id: int):
         }
         session.close()
         return success_response(data={"course": course_info})
+
+
+@courses_routes.route("/<course_id>/", methods=["PUT"])
+@courses_routes.route("/<course_id>", methods=["PUT"])
+def edit_course(course_id):
+    """This route will edit a course."""
+    jwt_result = validate_token_in_request(request)
+    if jwt_result["code"] != 0:
+        return client_error_response(
+            data={},
+            internal_code=jwt_result["code"],
+            status_code=401,
+            message=jwt_result["message"],
+        )
+    payload = jwt_result["data"]
+    email = payload["email"]
+    course_name = request.json.get("courseName")
+    course_number = request.json.get("courseNumber")
+    if course_name is None or course_number is None:
+        return client_error_response(
+            data={},
+            internal_code=-401,
+            status_code=400,
+            message="Missing course number or course name",
+        )
+    _, Session, _ = database.init_connection(database_uri(), echo=False)
+    session = Session()
+    course = database.get_course(session=session, course_id=course_id, user_email=email)
+    if course is None:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-402,
+            status_code=404,
+            message="Course not found or user is not enrolled in the course",
+        )
+    else:
+        course = database.edit_course(
+            session=session,
+            course_id=course_id,
+            course_name=course_name,
+            course_number=course_number,
+            user_email=email
+        )
+        session.close()
+        if course is None:
+            return client_error_response(
+                data={},
+                internal_code=-403,
+                status_code=403,
+                message="User does not have the correct role",
+            )
+        return success_response(data={})

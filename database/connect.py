@@ -121,18 +121,22 @@ def get_course(session, course_id: int, user_email: str):
         
 
 
-def edit_course(session, course_id, course_name, course_number):
+def edit_course(session, course_id, course_name, course_number, user_email):
     """
     This function edits a course in the database.
     """
-    course = get_course(session, course_id)
-    if course is not None:
-        course.name = course_name
-        course.identifier = course_number
-        session.commit()
-        return True
+    course = get_course(session, course_id, user_email)
+    user = get_user(session, user_email)
+    if course is not None and user is not None:
+        if user.role == "professor":
+            course.name = course_name
+            course.identifier = course_number
+            session.commit()
+            return course
+        else:
+            return None
     else:
-        return False
+        return None
 
 
 def join_course(session, course_name, student_email):
