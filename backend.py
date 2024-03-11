@@ -41,29 +41,6 @@ app.register_blueprint(users_routes, url_prefix="/users")
 app.register_blueprint(courses_routes, url_prefix="/courses")
 app.register_blueprint(apps_routes, url_prefix="/courses/<course_id>/apps")
 
-# Function to edit an existing course
-@app.route("/professor/edit_course", methods=["PUT"])
-def edit_course(course_id):
-    jwt_token = request.args.get("jwt")  # Get the token from the request
-    if jwt_token:
-        try:
-            course = database.get_course(
-                course_id=course_id, session=session
-            )  # Get the course from the database
-            if course is not None:
-                course_name = request.json[
-                    "courseName"
-                ]  # Get the new course name from the request
-                course_number = request.json[
-                    "courseNumber"
-                ]  # Get the new course number from the request
-                database.edit_course(session, course_id, course_name, course_number)
-                return jsonify({"message": "Course updated successfully"}), 200
-            else:
-                return jsonify({"error": "Course not found"}), 404
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Expired token"}), 401
-
 
 @app.route("/professor/<username>/<course_number>/edit_apps", methods=["PUT"])
 def edit_app(username, course_number, app_name):
