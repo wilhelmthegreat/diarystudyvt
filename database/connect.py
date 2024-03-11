@@ -168,3 +168,44 @@ def get_courses(session, user_email):
             return user.professors[0].courses if user.professors else []
     else:
         return None
+    
+    
+def add_app(session, course_id, user_email, name, intro, start_time: int, end_time: int, num_entries, max_students):
+    """
+    This function adds an app to the database.
+    """
+    course = get_course(session, course_id, user_email)
+    if course is not None:
+        # Check if the given user is a professor
+        user = get_user(session, user_email)
+        if user is not None and user.role == "professor":
+            # Make the start time and end time to be the datetime format
+            start_time = datetime.datetime.fromtimestamp(start_time)
+            end_time = datetime.datetime.fromtimestamp(end_time)
+            app = models.App(
+                name=name,
+                intro=intro,
+                start_time=start_time,
+                end_time=end_time,
+                num_entries=num_entries,
+                max_students=max_students,
+                binded_courses=[course]
+            )
+            session.add(app)
+            session.commit()
+            return app
+        else:
+            return None
+    else:
+        return None
+
+
+def get_apps(session, course_id, user_email):
+    """
+    This function returns all the apps of a course.
+    """
+    course = get_course(session, course_id, user_email)
+    if course is not None:
+        return course.apps
+    else:
+        return None

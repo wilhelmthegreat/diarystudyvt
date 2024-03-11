@@ -15,6 +15,7 @@ from config.database import database_uri
 from routes.auth import auth_routes
 from routes.users import users_routes
 from routes.courses import courses_routes
+from routes.apps import apps_routes
 
 dotenv_path = os.path.join(os.path.dirname(__file__), 'config', 'secret', '.env')
 load_dotenv(dotenv_path)
@@ -38,6 +39,7 @@ session = Session()
 app.register_blueprint(auth_routes, url_prefix="/auth")
 app.register_blueprint(users_routes, url_prefix="/users")
 app.register_blueprint(courses_routes, url_prefix="/courses")
+app.register_blueprint(apps_routes, url_prefix="/courses/<course_id>/apps")
 
 # Function to create a new course
 @app.route("/professor/new_course", methods=["POST"])
