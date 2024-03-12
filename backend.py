@@ -42,36 +42,6 @@ app.register_blueprint(courses_routes, url_prefix="/courses")
 app.register_blueprint(apps_routes, url_prefix="/courses/<course_id>/apps")
 
 
-@app.route("/professor/<username>/<course_number>/edit_apps", methods=["PUT"])
-def edit_app(username, course_number, app_name):
-    professor = db.professors.find_one({"username": username})
-    if professor:
-        course = db.courses.find_one(
-            {"course_number": course_number}
-        )  # Query by course number
-        if course:
-            app = course["apps"].find_one({"app_name": app_name})  # Query by app name
-            if app:  # Updating attributes if app exists
-                intro = request.json["intro"]
-                start_date = request.json["start_date"]
-                end_date = request.json["end_date"]
-                num_entries = request.json["num_entries"]
-                max_students = request.json["max_students"]
-                app = {
-                    "intro": intro,
-                    "start_date": start_date,
-                    "end_date": end_date,
-                    "num_entries": num_entries,
-                    "max_students": max_students,
-                }
-                course["apps"].update_one(
-                    {"app_name": app_name}, {"$set": {"apps": app}}
-                )
-                return jsonify({"message": "App updated successfully"}), 200
-            else:
-                return jsonify({"error": "App not found"}), 404
-
-
 @app.route("/professor/<username>/<course_number>/get_grades", methods=["POST"])
 def get_grades(username, course_number):
     # TODO: Change to use SQLAlchemy instead, and fix the query

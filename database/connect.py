@@ -174,7 +174,7 @@ def get_courses(session, user_email):
         return None
     
     
-def add_app(session, course_id, user_email, name, intro, start_time: int, end_time: int, num_entries, max_students):
+def add_app(session, course_id, user_email, name, intro, start_time: int, end_time: int, num_entries, max_students, template_link):
     """
     This function adds an app to the database.
     """
@@ -193,6 +193,7 @@ def add_app(session, course_id, user_email, name, intro, start_time: int, end_ti
                 end_time=end_time,
                 num_entries=num_entries,
                 max_students=max_students,
+                template=template_link,
                 binded_courses=[course]
             )
             session.add(app)
@@ -211,5 +212,47 @@ def get_apps(session, course_id, user_email):
     course = get_course(session, course_id, user_email)
     if course is not None:
         return course.apps
+    else:
+        return None
+    
+
+def get_app(session, app_id, user_email):
+    """
+    This function returns an app from the database.
+    """
+    app = session.query(models.App).filter_by(id=app_id).first()
+    if app is not None:
+        course = get_course(session, app.binded_courses[0].id, user_email)
+        if course is not None:
+            return app
+        else:
+            return None
+    else:
+        return None
+    
+
+def edit_app(session, app_id, name, user_email, intro, start_time: int, end_time: int, num_entries, max_students, template_link):
+    """
+    This function edits an app in the database.
+    """
+    app = get_app(session, app_id, user_email)
+    if app is not None:
+        # Check if the given user is a professor
+        user = get_user(session, user_email)
+        if user is not None and user.role == "professor":
+            # Make the start time and end time to be the datetime format
+            start_time = datetime.datetime.fromtimestamp(start_time)
+            end_time = datetime.datetime.fromtimestamp(end_time)
+            app.name = name
+            app.intro = intro
+            app.start_time = start_time
+            app.end_time = end_time
+            app.num_entries = num_entries
+            app.max_students = max_students
+            app.template = template_link
+            session.commit()
+            return app
+        else:
+            return None
     else:
         return None
