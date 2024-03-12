@@ -87,6 +87,7 @@ class App(Model):
     end_time = Column(TIMESTAMP, nullable=False) # End time of the app
     num_entries = Column(Integer, nullable=False) # Number of entries in the app
     max_students = Column(Integer, nullable=False) # Maximum number of students in the app
+    template = Column(String(50), nullable=False) # Template of the app
     
     enrolled_students = relationship('Student', secondary=app_student_table, back_populates='enrolled_apps')
     binded_courses = relationship('Course', secondary=course_app_table, back_populates='apps')
