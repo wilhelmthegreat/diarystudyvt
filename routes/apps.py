@@ -14,6 +14,7 @@ from utils.api_response_wrapper import (
     client_error_response,
     server_error_response,
 )
+import time
 
 # Set up the routes blueprint
 apps_routes = Blueprint("apps_routes", __name__)
@@ -68,8 +69,8 @@ def get_apps(course_id: int):
                 "id": app.id,
                 "name": app.name,
                 "intro": app.intro,
-                "start_time": app.start_time.timestamp(),
-                "end_time": app.end_time.timestamp(),
+                "start_time": time.mktime(app.start_time.timetuple()),
+                "end_time": time.mktime(app.end_time.timetuple()),
                 "num_entries": app.num_entries,
                 "max_students": app.max_students,
                 "num_students": num_students,
@@ -160,8 +161,8 @@ def create_app(course_id: int):
         "id": app.id,
         "name": app.name,
         "intro": app.intro,
-        "start_time": app.start_time.timestamp(),
-        "end_time": app.end_time.timestamp(),
+        "start_time": time.mktime(app.start_time.timetuple()),
+        "end_time": time.mktime(app.end_time.timetuple()),
         "num_entries": app.num_entries,
         "max_students": app.max_students,
         "template_link": app.template,
@@ -223,8 +224,8 @@ def get_app(course_id: int, app_id: int):
         "id": app.id,
         "name": app.name,
         "intro": app.intro,
-        "start_time": app.start_time.timestamp(),
-        "end_time": app.end_time.timestamp(),
+        "start_time": time.mktime(app.start_time.timetuple()),
+        "end_time": time.mktime(app.end_time.timetuple()),
         "num_entries": app.num_entries,
         "max_students": app.max_students,
         "template_link": app.template,
@@ -324,8 +325,8 @@ def edit_app(course_id: int, app_id: int):
         "id": app.id,
         "name": app.name,
         "intro": app.intro,
-        "start_time": app.start_time.timestamp(),
-        "end_time": app.end_time.timestamp(),
+        "start_time": time.mktime(app.start_time.timetuple()),
+        "end_time": time.mktime(app.end_time.timetuple()),
         "num_entries": app.num_entries,
         "max_students": app.max_students,
         "template_link": app.template,
