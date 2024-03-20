@@ -80,9 +80,14 @@ def validate_token_in_request(request) -> dict:
     """
     token = request.args.get("jwt")
     if token is None:
-        return {
-            "code": -105,
-            "message": "Invalid Token",
-            "data": {},
-        }
+        # Check if the token is in the headers
+        token = request.headers.get("Authorization")
+        if token is not None:
+            token = token.split(" ")[-1]
+        else:
+            return {
+                "code": -105,
+                "message": "Invalid Token",
+                "data": {},
+            }
     return validate_token(token)
