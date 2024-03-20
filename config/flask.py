@@ -17,7 +17,7 @@ import os
 
 dotenv_path = os.path.join(os.path.dirname(__file__), 'secret', '.env')
 
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path, override=True)
 
 
 def bind_host() -> str:
