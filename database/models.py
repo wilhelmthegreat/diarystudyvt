@@ -91,6 +91,21 @@ class App(Model):
     
     enrolled_students = relationship('Student', secondary=app_student_table, back_populates='enrolled_apps')
     binded_courses = relationship('Course', secondary=course_app_table, back_populates='apps')
+    stopwords = relationship('Stopword', back_populates='app')
     
     def __repr__(self):
         return f'<App intro={self.intro} start_time={self.start_time} end_time={self.end_time} num_entries={self.num_entries} max_students={self.max_students}>'
+
+
+class Stopword(Model):
+    __tablename__ = 'stopwords'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    word = Column(String(50), nullable=False)
+    app_id = Column(Integer, ForeignKey('apps.id'), nullable=False)
+    enabled = Column(Boolean, nullable=False, default=True) # This will be used as a flag to make sure when we change the stopword, 
+                                                            # we don't delete it from the database to make the app entries consistent.
+    
+    app = relationship('App', back_populates='stopwords')
+    
+    def __repr__(self):
+        return f'<Stopword word={self.word}, app_id={self.app_id}>'

@@ -14,7 +14,6 @@ from utils.api_response_wrapper import (
     client_error_response,
     server_error_response,
 )
-import time
 
 # Set up the routes blueprint
 apps_routes = Blueprint("apps_routes", __name__)
@@ -64,16 +63,21 @@ def get_apps(course_id: int):
     for app in apps:
         # Get the number of students enrolled in the app
         num_students = len(app.enrolled_students)
+        stopwords = []
+        for stopword in app.stopwords:
+            stopwords.append(stopword.word)
         all_apps.append(
             {
                 "id": app.id,
                 "name": app.name,
                 "intro": app.intro,
-                "start_time": time.mktime(app.start_time.timetuple()),
-                "end_time": time.mktime(app.end_time.timetuple()),
+                "start_time": app.start_time.timestamp(),
+                "end_time": app.end_time.timestamp(),
                 "num_entries": app.num_entries,
                 "max_students": app.max_students,
                 "num_students": num_students,
+                "template_link": app.template,
+                "stopwords": stopwords,
             }
         )
     session.close()
@@ -137,6 +141,11 @@ def create_app(course_id: int):
     num_entries = data.get("num_entries")
     max_students = data.get("max_students")
     template_link = data.get("template_link")
+    stop_words: str = data.get("stop_words")
+    # Make the stop_words to be separated by a comma
+    stop_words = stop_words.split(',')
+    # For each stop word, remove the leading and trailing spaces
+    stop_words = [word.strip() for word in stop_words]
     app = database.add_app(
         session=session,
         course_id=course_id,
@@ -147,7 +156,8 @@ def create_app(course_id: int):
         end_time=end_time,
         num_entries=num_entries,
         max_students=max_students,
-        template_link=template_link
+        template_link=template_link,
+        stopwords=stop_words
     )
     if app is None:
         session.close()
@@ -161,11 +171,12 @@ def create_app(course_id: int):
         "id": app.id,
         "name": app.name,
         "intro": app.intro,
-        "start_time": time.mktime(app.start_time.timetuple()),
-        "end_time": time.mktime(app.end_time.timetuple()),
+        "start_time": app.start_time.timestamp(),
+        "end_time": app.end_time.timestamp(),
         "num_entries": app.num_entries,
         "max_students": app.max_students,
         "template_link": app.template,
+        "stopwords": stop_words,
     }
     session.close()
     return success_response(data={"app": returned_app})
@@ -224,11 +235,12 @@ def get_app(course_id: int, app_id: int):
         "id": app.id,
         "name": app.name,
         "intro": app.intro,
-        "start_time": time.mktime(app.start_time.timetuple()),
-        "end_time": time.mktime(app.end_time.timetuple()),
+        "start_time": app.start_time.timestamp(),
+        "end_time": app.end_time.timestamp(),
         "num_entries": app.num_entries,
         "max_students": app.max_students,
         "template_link": app.template,
+        "stopwords": app.stopwords,
     }
     session.close()
     return success_response(data={"app": returned_app})
@@ -301,6 +313,11 @@ def edit_app(course_id: int, app_id: int):
     num_entries = data.get("num_entries")
     max_students = data.get("max_students")
     template_link = data.get("template_link")
+    stop_words: str = data.get("stop_words")
+    # Make the stop_words to be separated by a comma
+    stop_words = stop_words.split(',')
+    # For each stop word, remove the leading and trailing spaces
+    stop_words = [word.strip() for word in stop_words]
     app = database.edit_app(
         session=session,
         app_id=app_id,
@@ -311,7 +328,8 @@ def edit_app(course_id: int, app_id: int):
         end_time=end_time,
         num_entries=num_entries,
         max_students=max_students,
-        template_link=template_link
+        template_link=template_link,
+        stopwords=stop_words
     )
     if app is None:
         session.close()
@@ -325,11 +343,12 @@ def edit_app(course_id: int, app_id: int):
         "id": app.id,
         "name": app.name,
         "intro": app.intro,
-        "start_time": time.mktime(app.start_time.timetuple()),
-        "end_time": time.mktime(app.end_time.timetuple()),
+        "start_time": app.start_time.timestamp(),
+        "end_time": app.end_time.timestamp(),
         "num_entries": app.num_entries,
         "max_students": app.max_students,
         "template_link": app.template,
+        "stopwords": stop_words,
     }
     session.close()
     return success_response(data={"app": returned_app})

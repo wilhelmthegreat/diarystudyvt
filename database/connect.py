@@ -174,7 +174,7 @@ def get_courses(session, user_email):
         return None
     
     
-def add_app(session, course_id, user_email, name, intro, start_time: int, end_time: int, num_entries, max_students, template_link):
+def add_app(session, course_id: str, user_email: str, name: str, intro: str, start_time: int, end_time: int, num_entries: int, max_students: int, template_link: str, stopwords: list):
     """
     This function adds an app to the database.
     """
@@ -196,6 +196,10 @@ def add_app(session, course_id, user_email, name, intro, start_time: int, end_ti
                 template=template_link,
                 binded_courses=[course]
             )
+            for stopword in stopwords:
+                app.stopwords.append(
+                    models.Stopword(word=stopword)
+                )
             session.add(app)
             session.commit()
             return app
@@ -231,7 +235,7 @@ def get_app(session, app_id, user_email):
         return None
     
 
-def edit_app(session, app_id, name, user_email, intro, start_time: int, end_time: int, num_entries, max_students, template_link):
+def edit_app(session, app_id, name, user_email, intro, start_time: int, end_time: int, num_entries, max_students, template_link, stopwords=[]):
     """
     This function edits an app in the database.
     """
@@ -250,6 +254,20 @@ def edit_app(session, app_id, name, user_email, intro, start_time: int, end_time
             app.num_entries = num_entries
             app.max_students = max_students
             app.template = template_link
+            # Get the stopwords of the app
+            app_stopwords = [stopword.word for stopword in app.stopwords]
+            # Check if each item in app_stopwords is in stopwords
+            # if not, disable the stopword
+            for stopword in app_stopwords:
+                if stopword not in stopwords:
+                    app.stopwords[app_stopwords.index(stopword)].enabled = False
+            # Check if each item in stopwords is in app_stopwords
+            # if not, add the stopword
+            for stopword in stopwords:
+                if stopword not in app_stopwords:
+                    app.stopwords.append(
+                        models.Stopword(word=stopword)
+                    )
             session.commit()
             return app
         else:
