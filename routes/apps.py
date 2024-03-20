@@ -231,6 +231,9 @@ def get_app(course_id: int, app_id: int):
             status_code=404,
             message="App not found",
         )
+    stopwords = []
+    for stopword in app.stopwords:
+        stopwords.append(stopword.word)
     returned_app = {
         "id": app.id,
         "name": app.name,
@@ -240,7 +243,7 @@ def get_app(course_id: int, app_id: int):
         "num_entries": app.num_entries,
         "max_students": app.max_students,
         "template_link": app.template,
-        "stopwords": app.stopwords,
+        "stopwords": stopwords,
     }
     session.close()
     return success_response(data={"app": returned_app})
