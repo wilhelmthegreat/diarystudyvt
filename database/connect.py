@@ -139,12 +139,12 @@ def edit_course(session, course_id, course_name, course_number, user_email):
         return None
 
 
-def join_course(session, course_name, student_email):
+def join_course(session, course_id, student_email):
     """
     This function adds a student to a course. If the student is already in the course, it returns False.
     Otherwise, it adds the student to the course and returns True.
     """
-    course = session.query(models.Course).filter_by(name=course_name).first()
+    course = session.query(models.Course).filter_by(id=course_id).first()
     student = session.query(models.Student).filter_by(email=student_email).first()
     if course is not None and student is not None:
         if student not in course.students:

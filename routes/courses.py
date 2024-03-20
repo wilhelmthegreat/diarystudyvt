@@ -195,3 +195,41 @@ def edit_course(course_id):
                 message="User does not have the correct role",
             )
         return success_response(data={})
+    
+
+@courses_routes.route("/<course_id>/join", methods=["POST"])
+@courses_routes.route("/<course_id>/join/", methods=["POST"])
+def join_course(course_id):
+    """This route will join a course."""
+    jwt_result = validate_token_in_request(request)
+    if jwt_result["code"] != 0:
+        return client_error_response(
+            data={},
+            internal_code=jwt_result["code"],
+            status_code=401,
+            message=jwt_result["message"],
+        )
+    payload = jwt_result["data"]
+    email = payload["email"]
+    _, Session, _ = database.init_connection(database_uri(), echo=False)
+    session = Session()
+    course = database.get_course(session=session, course_id=course_id, user_email=email)
+    if course is None:
+        course = database.join_course(session=session, course_id=course_id, student_email=email)
+        session.close()
+        if course is None:
+            return client_error_response(
+                data={},
+                internal_code=-404,
+                status_code=404,
+                message="Course not found",
+            )
+        return success_response(data={})
+    else:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-405,
+            status_code=405,
+            message="User is already enrolled in the course",
+        )
