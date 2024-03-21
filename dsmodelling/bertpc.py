@@ -1,12 +1,11 @@
 from bertopic import BERTopic
-from sklearn.datasets import fetch_20newsgroups
 import json
 
 f = open('sample.json', encoding='utf8')
-txt = json.load(f)
+sample= json.load(f)
 f.close()
 
 topic_model = BERTopic()
-topics, probs = topic_model.fit_transform(txt)
+topics, probs = topic_model.fit_transform(sample)
 
 print(topic_model.get_topic_info())
