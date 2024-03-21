@@ -1,3 +1,5 @@
 nltk
 torch
 transformers
+sklearn
+bertopic
