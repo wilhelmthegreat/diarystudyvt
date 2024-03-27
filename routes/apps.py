@@ -355,3 +355,71 @@ def edit_app(course_id: int, app_id: int):
     }
     session.close()
     return success_response(data={"app": returned_app})
+
+
+def join_app(course_id: int, app_id: int):
+    """This route will allow the user to join the app with the given id in the given course.
+    
+    Args:
+        course_id: The id of the course to join the app in.
+        app_id: The id of the app to join.
+    """
+    jwt_result = validate_token_in_request(request)
+    if jwt_result["code"] != 0:
+        return client_error_response(
+            data={},
+            internal_code=jwt_result["code"],
+            status_code=401,
+            message=jwt_result["message"],
+        )
+    payload = jwt_result["data"]
+    email = payload["email"]
+    _, Session, _ = database.init_connection(database_uri(), echo=False)
+    session = Session()
+    user = database.get_user(session=session, email=email)
+    if user is None:
+        session.close()
+        return server_error_response(
+            data={},
+            internal_code=-1,
+            status_code=500,
+            message="User not found",
+        )
+    app = database.get_app(session=session, app_id=app_id, user_email=email)
+    if app is None:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=404,
+            message="App not found",
+        )
+    # Check if the user is already enrolled in the app
+    if email in app.enrolled_students:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=400,
+            message="User is already enrolled in the app",
+        )
+    # Check if the user has reached the maximum number of students
+    if len(app.enrolled_students) >= app.max_students:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=400,
+            message="The app has reached the maximum number of students",
+        )
+    app = database.join_app(session=session, app_id=app_id, user_email=email)
+    if app is None:
+        session.close()
+        return server_error_response(
+            data={},
+            internal_code=-1,
+            status_code=500,
+            message="Failed to join the app",
+        )
+    session.close()
+    return success_response(data={})

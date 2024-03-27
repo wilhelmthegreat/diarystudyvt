@@ -274,3 +274,21 @@ def edit_app(session, app_id, name, user_email, intro, start_time: int, end_time
             return None
     else:
         return None
+
+
+def join_app(session, app_id, student_email):
+    """
+    This function adds a student to an app. If the student is already in the app, it returns False.
+    Otherwise, it adds the student to the app and returns True.
+    """
+    app = session.query(models.App).filter_by(id=app_id).first()
+    student = session.query(models.Student).filter_by(email=student_email).first()
+    if app is not None and student is not None:
+        if student not in app.students:
+            app.students.append(student)
+            session.commit()
+            return True
+        else:
+            return False
+    else:
+        return False
