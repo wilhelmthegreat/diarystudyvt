@@ -245,7 +245,14 @@ def get_app(course_id: int, app_id: int):
         "template_link": app.template,
         "stopwords": stopwords,
     }
-    session.close()
+    if user.role == "student":
+        # Check if the user is enrolled in the app
+        if email not in app.enrolled_students:
+            session.close()
+            returned_app["is_enrolled"] = False
+        else:
+            session.close()
+            returned_app["is_enrolled"] = True
     return success_response(data={"app": returned_app})
 
 
@@ -357,6 +364,7 @@ def edit_app(course_id: int, app_id: int):
     return success_response(data={"app": returned_app})
 
 
+@apps_routes.route("/<app_id>/join/", methods=["POST"])
 def join_app(course_id: int, app_id: int):
     """This route will allow the user to join the app with the given id in the given course.
     
@@ -385,6 +393,16 @@ def join_app(course_id: int, app_id: int):
             status_code=500,
             message="User not found",
         )
+    # Check if the course have the app
+    course = database.get_course(session=session, course_id=course_id, user_email=email)
+    if course is None:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=404,
+            message="Course not found or user is not enrolled in the course",
+        )
     app = database.get_app(session=session, app_id=app_id, user_email=email)
     if app is None:
         session.close()
@@ -393,6 +411,14 @@ def join_app(course_id: int, app_id: int):
             internal_code=-1,
             status_code=404,
             message="App not found",
+        )
+    elif course_id not in [course.id for course in app.binded_courses]:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=404,
+            message="App not found in the course",
         )
     # Check if the user is already enrolled in the app
     if email in app.enrolled_students:
