@@ -364,6 +364,7 @@ def edit_app(course_id: int, app_id: int):
     return success_response(data={"app": returned_app})
 
 
+@apps_routes.route("/<app_id>/join", methods=["POST"])
 @apps_routes.route("/<app_id>/join/", methods=["POST"])
 def join_app(course_id: int, app_id: int):
     """This route will allow the user to join the app with the given id in the given course.
