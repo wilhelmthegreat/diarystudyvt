@@ -1,0 +1,7 @@
+nltk
+torch
+transformers
+sklearn
+bertopic
+gensim
+matplotlib
