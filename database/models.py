@@ -125,6 +125,8 @@ class Entry(Model):
     student_id: Mapped[int] = Column(Integer, ForeignKey('students.id'), nullable=False)
     app_id: Mapped[int] = Column(Integer, ForeignKey('apps.id'), nullable=False)
     content: Mapped[str] = Column(String(50), nullable=False)
+    study_start_time: Mapped[int] = Column(TIMESTAMP, nullable=False)
+    study_duration_minutes: Mapped[int] = Column(Integer, nullable=False)
     create_at: Mapped[int] = Column(TIMESTAMP, nullable=False)
     update_at: Mapped[int] = Column(TIMESTAMP, nullable=False)
     
@@ -132,5 +134,5 @@ class Entry(Model):
     app: Mapped[App] = relationship('App', back_populates='entry_list')
     
     def __repr__(self):
-        return f'<Entry content={self.content} create_at={self.create_at} update_at={self.update_at}>'
+        return f'<Entry content={self.content} create_at={self.create_at} update_at={self.update_at} study_start_time={self.study_start_time} study_duration_minutes={self.study_duration_minutes}>'
 
