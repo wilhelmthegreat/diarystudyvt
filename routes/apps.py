@@ -332,7 +332,7 @@ def edit_app(course_id: int, app_id: int):
         session=session,
         app_id=app_id,
         user_email=email,
-        name=name,
+        app_name=name,
         intro=intro,
         start_time=start_time,
         end_time=end_time,

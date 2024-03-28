@@ -1,6 +1,6 @@
 from sqlalchemy.engine import create_engine
 from sqlalchemy import event, MetaData
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import sessionmaker, scoped_session, Session
 from . import models
 import datetime
 
@@ -20,7 +20,7 @@ def init_connection(uri, echo=False):
     return engine, Session, metadata
 
 
-def adding_user(session, first_name, last_name, email, role="student"):
+def adding_user(session: Session, first_name: str, last_name: str, email: str, role: str="student") -> bool:
     """
     This function adds a user to the database. If the user already exists, it returns False.
     Otherwise, it adds the user and returns True.
@@ -34,7 +34,10 @@ def adding_user(session, first_name, last_name, email, role="student"):
     user = session.query(models.User).filter_by(email=email).first()
     if user is None:
         user = models.User(
-            first_name=first_name, last_name=last_name, email=email, role=role
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            role=role
         )
         if role == "student":
             student = models.Student(email=email, id=user.id)
@@ -49,29 +52,29 @@ def adding_user(session, first_name, last_name, email, role="student"):
         return False
 
 
-def get_user(session, email):
+def get_user(session, email) -> models.User:
     """
     This function checks if a user is in the database.
 
     @param session: sqlalchemy.orm.session.Session, the session to use to check the user
     @param email: str, the email of the user
     """
-    user = session.query(models.User).filter_by(email=email).first()
+    user: models.User = session.query(models.User).filter_by(email=email).first()
     if user is not None:
         return user
     else:
         return None
 
 
-def adding_course(session, course_name, course_number, professor_email):
+def adding_course(session: Session, course_name: str, course_number: int, professor_email: str) -> bool:
     """
     This function adds a course to the database. If the course already exists, it returns False.
     Otherwise, it adds the course and returns True.
     """
-    course = session.query(models.Course).filter_by(name=course_name).first()
-    professor = session.query(models.Professor).filter_by(email=professor_email).first()
+    course: models.Course = session.query(models.Course).filter_by(name=course_name).first()
+    professor: models.Professor = session.query(models.Professor).filter_by(email=professor_email).first()
     if course is None:
-        course = models.Course(name=course_name, identifier=course_number)
+        course: models.Course = models.Course(name=course_name, identifier=course_number)
         if professor is not None:
             course.professors.append(professor)
             session.add(course)
@@ -83,7 +86,7 @@ def adding_course(session, course_name, course_number, professor_email):
         return False
 
 
-def get_course(session, course_id: int, user_email: str):
+def get_course(session: Session, course_id: int, user_email: str) -> models.Course:
     """
     This function returns a course from the database.
     """
@@ -121,7 +124,7 @@ def get_course(session, course_id: int, user_email: str):
         
 
 
-def edit_course(session, course_id, course_name, course_number, user_email):
+def edit_course(session: Session, course_id: int, course_name: str, course_number: str, user_email: str) -> models.Course:
     """
     This function edits a course in the database.
     """
@@ -139,7 +142,7 @@ def edit_course(session, course_id, course_name, course_number, user_email):
         return None
 
 
-def join_course(session, course_id, student_email):
+def join_course(session: Session, course_id: id, student_email: str) -> bool:
     """
     This function adds a student to a course. If the student is already in the course, it returns False.
     Otherwise, it adds the student to the course and returns True.
@@ -157,7 +160,7 @@ def join_course(session, course_id, student_email):
         return False
 
 
-def get_courses(session, user_email):
+def get_courses(session: Session, user_email: str) -> list:
     """
     This function returns all the courses of a user.
     """
@@ -174,7 +177,7 @@ def get_courses(session, user_email):
         return None
     
     
-def add_app(session, course_id: str, user_email: str, name: str, intro: str, start_time: int, end_time: int, num_entries: int, max_students: int, template_link: str, stopwords: list):
+def add_app(session: Session, course_id: int, user_email: str, name: str, intro: str, start_time: int, end_time: int, num_entries: int, max_students: int, template_link: str, stopwords: list):
     """
     This function adds an app to the database.
     """
@@ -209,7 +212,7 @@ def add_app(session, course_id: str, user_email: str, name: str, intro: str, sta
         return None
 
 
-def get_apps(session, course_id, user_email):
+def get_apps(session: Session, course_id: int, user_email: str) -> list:
     """
     This function returns all the apps of a course.
     """
@@ -220,7 +223,7 @@ def get_apps(session, course_id, user_email):
         return None
     
 
-def get_app(session, app_id, user_email):
+def get_app(session: Session, app_id: int, user_email: str) -> models.App:
     """
     This function returns an app from the database.
     """
@@ -235,7 +238,7 @@ def get_app(session, app_id, user_email):
         return None
     
 
-def edit_app(session, app_id, name, user_email, intro, start_time: int, end_time: int, num_entries, max_students, template_link, stopwords=[]):
+def edit_app(session: Session, app_id: int, app_name: str, user_email: str, intro: str, start_time: int, end_time: int, num_entries: int, max_students: int, template_link: str, stopwords: list=[]) -> models.App:
     """
     This function edits an app in the database.
     """
@@ -247,7 +250,7 @@ def edit_app(session, app_id, name, user_email, intro, start_time: int, end_time
             # Make the start time and end time to be the datetime format
             start_time = datetime.datetime.fromtimestamp(start_time)
             end_time = datetime.datetime.fromtimestamp(end_time)
-            app.name = name
+            app.name = app_name
             app.intro = intro
             app.start_time = start_time
             app.end_time = end_time
@@ -276,7 +279,7 @@ def edit_app(session, app_id, name, user_email, intro, start_time: int, end_time
         return None
 
 
-def join_app(session, app_id, student_email):
+def join_app(session: Session, app_id: int, student_email: str) -> bool:
     """
     This function adds a student to an app. If the student is already in the app, it returns False.
     Otherwise, it adds the student to the app and returns True.
@@ -292,3 +295,84 @@ def join_app(session, app_id, student_email):
             return False
     else:
         return False
+
+
+def get_app_entries(session: Session, app_id: int, user_email: str) -> list[models.Entry]:
+    """
+    This function returns all the entries of an app.
+    """
+    app = get_app(session, app_id, user_email)
+    if app is not None:
+        return app.entry_list
+    else:
+        return None
+
+
+def add_entry(session: Session, app_id: int, student_email: str, entry_text: str, create_at: int = datetime.datetime.now(), update_at: int = datetime.datetime.now()) -> models.Entry:
+    """
+    This function adds an entry to the database.
+    """
+    app = get_app(session, app_id, student_email)
+    student = session.query(models.Student).filter_by(email=student_email).first()
+    if app is not None and student is not None:
+        # Check if the student is enrolled in the app
+        if student in app.enrolled_students:
+            entry = models.Entry(
+                student_id=student.id,
+                app_id=app.id,
+                content=entry_text,
+                create_at=create_at,
+                update_at=update_at
+            )
+            session.add(entry)
+            session.commit()
+            return entry
+        else:
+            return None
+    else:
+        return None
+
+
+def get_entry(session: Session, entry_id: int, user_email: str) -> models.Entry:
+    """
+    This function returns an entry from the database.
+    """
+    entry: models.Entry = session.query(models.Entry).filter_by(id=entry_id).first()
+    if entry is not None:
+        app = get_app(session, entry.app_id, user_email)
+        # Check if the app is not None
+        if app is not None:
+            # Check if the user is a student
+            user = get_user(session, user_email)
+            if user is not None and user.role == "student":
+                # Check if the student is enrolled in the app
+                if user.students[0] in app.enrolled_students:
+                    # Check if the student is the owner of the entry
+                    if user.students[0].id == entry.student_id:
+                        return entry
+                    else:
+                        return None
+                else:
+                    return None
+            elif user is not None and user.role == "professor":
+                # Check if the professor is the owner of the app
+                if user.professors[0] in get_course(session, app.binded_courses[0].id, user_email).professors:
+                    return entry
+                else:
+                    return None
+                
+    
+
+def edit_entry(session: Session, entry_id: int, user_email: str, entry_text: str, update_at: int = datetime.datetime.now()) -> models.Entry:
+    """
+    This function edits an entry in the database.
+    """
+    entry = get_entry(session, entry_id, user_email)
+    if entry is not None:
+        entry.content = entry_text
+        entry.update_at = update_at
+        session.commit()
+        return entry
+    else:
+        return None
+                
