@@ -36,11 +36,11 @@ app_entry_table = Table('app_entry', Model.metadata,
 
 class User(Model):
     __tablename__ = 'users'
-    id: int = Column(Integer, primary_key=True, autoincrement=True)
-    first_name: str = Column(String(50), nullable=False)
-    last_name: str = Column(String(50), nullable=False)
-    email: str = Column(String(50), nullable=False, unique=True)
-    role: str = Column(String(50), nullable=False)
+    id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
+    first_name: Mapped[str] = Column(String(50), nullable=False)
+    last_name: Mapped[str] = Column(String(50), nullable=False)
+    email: Mapped[str] = Column(String(50), nullable=False, unique=True)
+    role: Mapped[str] = Column(String(50), nullable=False)
     
     professors: Mapped[list['Professor']] = relationship("Professor", back_populates="users")
     students: Mapped[list['Student']] = relationship("Student", back_populates="users")
@@ -50,11 +50,11 @@ class User(Model):
     
 class Student(Model):
     __tablename__ = 'students'
-    id: int = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    email: str = Column(String(50), nullable=False, unique=True)
+    id: Mapped[int] = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    email: Mapped[str] = Column(String(50), nullable=False, unique=True)
     
     users: Mapped[User] = relationship('User', back_populates='students')
-    entry_list: Mapped[list['Entry']] = relationship('Entry', backref='student')
+    entry_list: Mapped[list['Entry']] = relationship('Entry', back_populates='student')
     courses: Mapped[list['Course']] = relationship('Course', secondary=course_student_table, back_populates='students')
     enrolled_apps: Mapped[list['App']] = relationship('App', secondary=app_student_table, back_populates='enrolled_students')
 
@@ -63,8 +63,8 @@ class Student(Model):
     
 class Professor(Model):
     __tablename__ = 'professors'
-    id: int = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    email: str = Column(String(50), nullable=False, unique=True)
+    id: Mapped[int] = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    email: Mapped[str] = Column(String(50), nullable=False, unique=True)
     
     users: Mapped[list['User']] = relationship('User', back_populates='professors')
     courses: Mapped[list['Course']] = relationship('Course', secondary=course_professor_table, back_populates='professors')
@@ -74,9 +74,9 @@ class Professor(Model):
     
 class Course(Model):
     __tablename__ = 'courses'
-    id: int = Column(Integer, primary_key=True, autoincrement=True)
-    name: str = Column(String(50), nullable=False)
-    identifier: str = Column(String(50), nullable=False)
+    id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = Column(String(50), nullable=False)
+    identifier: Mapped[str] = Column(String(50), nullable=False)
     
     students: Mapped[list['Student']] = relationship('Student', secondary=course_student_table, back_populates='courses')
     professors: Mapped[list['Professor']] = relationship('Professor', secondary=course_professor_table, back_populates='courses')
@@ -87,18 +87,18 @@ class Course(Model):
 
 class App(Model):
     __tablename__ = 'apps'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(50), nullable=False) # Name of the app
-    intro = Column(String(50), nullable=False) # Intro to the app
-    start_time = Column(TIMESTAMP, nullable=False) # Start time of the app
-    end_time = Column(TIMESTAMP, nullable=False) # End time of the app
-    num_entries = Column(Integer, nullable=False) # Number of entries in the app
-    max_students = Column(Integer, nullable=False) # Maximum number of students in the app
-    template = Column(String(50), nullable=False) # Template of the app
+    id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = Column(String(50), nullable=False) # Name of the app
+    intro: Mapped[str] = Column(String(50), nullable=False) # Intro to the app
+    start_time: Mapped[int] = Column(TIMESTAMP, nullable=False) # Start time of the app
+    end_time: Mapped[int] = Column(TIMESTAMP, nullable=False) # End time of the app
+    num_entries: Mapped[int] = Column(Integer, nullable=False) # Number of entries in the app
+    max_students: Mapped[int] = Column(Integer, nullable=False) # Maximum number of students in the app
+    template: Mapped[str] = Column(String(50), nullable=False) # Template of the app
     
     enrolled_students: Mapped[list['Student']] = relationship('Student', secondary=app_student_table, back_populates='enrolled_apps')
     binded_courses: Mapped[list['Course']] = relationship('Course', secondary=course_app_table, back_populates='apps')
-    entry_list: Mapped[list['Entry']] = relationship('Entry', secondary=app_entry_table, backref='app')
+    entry_list: Mapped[list['Entry']] = relationship('Entry', secondary=app_entry_table, back_populates='app')
     stopwords: Mapped[list['Stopword']] = relationship('Stopword', back_populates='app')
     
     def __repr__(self):
@@ -107,10 +107,10 @@ class App(Model):
 
 class Stopword(Model):
     __tablename__ = 'stopwords'
-    id: int = Column(Integer, primary_key=True, autoincrement=True)
-    word: str = Column(String(50), nullable=False)
-    app_id: int = Column(Integer, ForeignKey('apps.id'), nullable=False)
-    enabled: bool = Column(Boolean, nullable=False, default=True) # This will be used as a flag to make sure when we change the stopword, 
+    id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
+    word: Mapped[str] = Column(String(50), nullable=False)
+    app_id: Mapped[int] = Column(Integer, ForeignKey('apps.id'), nullable=False)
+    enabled: Mapped[bool] = Column(Boolean, nullable=False, default=True) # This will be used as a flag to make sure when we change the stopword, 
                                                             # we don't delete it from the database to make the app entries consistent.
     
     app: Mapped[App] = relationship('App', back_populates='stopwords')
@@ -121,15 +121,15 @@ class Stopword(Model):
 
 class Entry(Model):
     __tablename__ = 'entries'
-    id: int = Column(Integer, primary_key=True, autoincrement=True)
-    student_id: int = Column(Integer, ForeignKey('students.id'), nullable=False)
-    app_id: int = Column(Integer, ForeignKey('apps.id'), nullable=False)
-    content: str = Column(String(50), nullable=False)
-    create_at: int = Column(TIMESTAMP, nullable=False)
-    update_at: int = Column(TIMESTAMP, nullable=False)
+    id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = Column(Integer, ForeignKey('students.id'), nullable=False)
+    app_id: Mapped[int] = Column(Integer, ForeignKey('apps.id'), nullable=False)
+    content: Mapped[str] = Column(String(50), nullable=False)
+    create_at: Mapped[int] = Column(TIMESTAMP, nullable=False)
+    update_at: Mapped[int] = Column(TIMESTAMP, nullable=False)
     
-    student: Mapped[Student] = relationship('Student', backref='entry_list')
-    app: Mapped[App] = relationship('App', backref='entry_list')
+    student: Mapped[Student] = relationship('Student', back_populates='entry_list')
+    app: Mapped[App] = relationship('App', back_populates='entry_list')
     
     def __repr__(self):
         return f'<Entry content={self.content} create_at={self.create_at} update_at={self.update_at}>'
