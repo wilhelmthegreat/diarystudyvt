@@ -4,7 +4,7 @@ from gensim.models import LdaModel
 from gensim.parsing.preprocessing import preprocess_string
 
 # Sample text data
-with open("sample.json", "r") as json_file:
+with open("sample.json", "r", encoding="utf8") as json_file:
     texts = json.load(json_file)
 
 
