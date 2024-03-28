@@ -297,6 +297,27 @@ def join_app(session: Session, app_id: int, student_email: str) -> bool:
         return False
 
 
+def check_user_in_app(session: Session, app_id: int, user_email: str) -> bool:
+    """
+    This function checks if a user is enrolled in an app.
+    """
+    app = get_app(session, app_id, user_email)
+    user = get_user(session, user_email)
+    if app is not None and user is not None:
+        if user.role == "student":
+            if user.students[0] in app.enrolled_students:
+                return True
+            else:
+                return False
+        elif user.role == "professor":
+            if user.professors[0] in get_course(session, app.binded_courses[0].id, user_email).professors:
+                return True
+            else:
+                return False
+    else:
+        return False
+
+
 def get_app_entries(session: Session, app_id: int, user_email: str) -> list[models.Entry]:
     """
     This function returns all the entries of an app.

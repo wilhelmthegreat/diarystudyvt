@@ -93,10 +93,10 @@ def new_entry(course_id: int, app_id: int):
         )
     payload = jwt_result["data"]
     email = payload["email"]
-    content = request.json.get("content")
+    entry_text = request.json.get("entry_text")
     study_start_time = request.json.get("study_start_time")
     study_duration_minutes = request.json.get("study_duration_minutes")
-    if content is None:
+    if entry_text is None:
         return client_error_response(
             data={},
             internal_code=-1,
@@ -142,10 +142,19 @@ def new_entry(course_id: int, app_id: int):
             status_code=404,
             message="App not found or you are not enrolled in this app",
         )
+    # Check if the user joined the app
+    if not database.check_user_in_app(session=session, app_id=app_id, user_email=email):
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=403,
+            message="You are not enrolled in this app",
+        )
     # Santize the content before adding it to the database
-    content = quote(content)
+    entry_text = quote(entry_text)
     # Add the entry to the database
-    entry = database.add_entry(session=session, student_id=user.id, app_id=app_id, content=content, study_start_time=study_start_time, study_duration_minutes=study_duration_minutes)
+    entry = database.add_entry(session=session, student_email=email, app_id=app_id, entry_text=entry_text, study_start_time=study_start_time, study_duration_minutes=study_duration_minutes)
     if entry is None:
         session.close()
         return server_error_response(
