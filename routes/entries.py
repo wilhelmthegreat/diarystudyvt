@@ -94,6 +94,8 @@ def new_entry(course_id: int, app_id: int):
     payload = jwt_result["data"]
     email = payload["email"]
     content = request.json.get("content")
+    study_start_time = request.json.get("study_start_time")
+    study_duration_minutes = request.json.get("study_duration_minutes")
     if content is None:
         return client_error_response(
             data={},
@@ -143,7 +145,7 @@ def new_entry(course_id: int, app_id: int):
     # Santize the content before adding it to the database
     content = quote(content)
     # Add the entry to the database
-    entry = database.add_entry(session=session, student_id=user.id, app_id=app_id, content=content)
+    entry = database.add_entry(session=session, student_id=user.id, app_id=app_id, content=content, study_start_time=study_start_time, study_duration_minutes=study_duration_minutes)
     if entry is None:
         session.close()
         return server_error_response(
@@ -238,6 +240,8 @@ def update_entry(course_id: int, app_id: int, entry_id: int):
     payload = jwt_result["data"]
     email = payload["email"]
     content = request.json.get("content")
+    study_start_time = request.json.get("study_start_time")
+    study_duration_minutes = request.json.get("study_duration_minutes")
     if content is None:
         return client_error_response(
             data={},
@@ -296,7 +300,7 @@ def update_entry(course_id: int, app_id: int, entry_id: int):
     # Santize the content before adding it to the database
     content = quote(content)
     # Update the entry in the database
-    entry = database.edit_entry(session=session, entry_id=entry_id, user_email=email, entry_text=content)
+    entry = database.edit_entry(session=session, entry_id=entry_id, user_email=email, entry_text=content, study_start_time=study_start_time, study_duration_minutes=study_duration_minutes)
     if entry is None:
         session.close()
         return server_error_response(

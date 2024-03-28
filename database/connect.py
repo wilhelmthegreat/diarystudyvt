@@ -303,12 +303,30 @@ def get_app_entries(session: Session, app_id: int, user_email: str) -> list[mode
     """
     app = get_app(session, app_id, user_email)
     if app is not None:
-        return app.entry_list
+        # Check if the user is a student
+        user = get_user(session, user_email)
+        if user is not None and user.role == "student":
+            # Check if the student is enrolled in the app
+            entries = []
+            if user.students[0] in app.enrolled_students:
+                # Get the entries authored by the student
+                for entry in app.entry_list:
+                    if entry.student_id == user.students[0].id:
+                        entries.append(entry)
+                return entries
+            else:
+                return None
+        elif user is not None and user.role == "professor":
+            # Check if the professor is the owner of the app
+            if user.professors[0] in get_course(session, app.binded_courses[0].id, user_email).professors:
+                return app.entry_list
+            else:
+                return None
     else:
         return None
 
 
-def add_entry(session: Session, app_id: int, student_email: str, entry_text: str, create_at: int = datetime.datetime.now(), update_at: int = datetime.datetime.now()) -> models.Entry:
+def add_entry(session: Session, app_id: int, student_email: str, entry_text: str, study_start_time: int, study_duration_minutes: int, create_at: int = datetime.datetime.now(), update_at: int = datetime.datetime.now()) -> models.Entry:
     """
     This function adds an entry to the database.
     """
@@ -321,6 +339,8 @@ def add_entry(session: Session, app_id: int, student_email: str, entry_text: str
                 student_id=student.id,
                 app_id=app.id,
                 content=entry_text,
+                study_start_time=study_start_time,
+                study_duration_minutes=study_duration_minutes,
                 create_at=create_at,
                 update_at=update_at
             )
@@ -363,13 +383,15 @@ def get_entry(session: Session, entry_id: int, user_email: str) -> models.Entry:
                 
     
 
-def edit_entry(session: Session, entry_id: int, user_email: str, entry_text: str, update_at: int = datetime.datetime.now()) -> models.Entry:
+def edit_entry(session: Session, entry_id: int, user_email: str, entry_text: str, study_start_time: int, study_duration_minutes: int, update_at: int = datetime.datetime.now()) -> models.Entry:
     """
     This function edits an entry in the database.
     """
     entry = get_entry(session, entry_id, user_email)
     if entry is not None:
         entry.content = entry_text
+        entry.study_start_time = study_start_time
+        entry.study_duration_minutes = study_duration_minutes
         entry.update_at = update_at
         session.commit()
         return entry
