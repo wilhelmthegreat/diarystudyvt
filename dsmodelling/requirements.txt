@@ -3,3 +3,5 @@ torch
 transformers
 sklearn
 bertopic
+gensim
+matplotlib
