@@ -42,8 +42,8 @@ class User(Model):
     email: str = Column(String(50), nullable=False, unique=True)
     role: str = Column(String(50), nullable=False)
     
-    professors: 'Professor' = relationship("Professor", back_populates="users")
-    students: 'Student' = relationship("Student", back_populates="users")
+    professors: 'list[Professor]' = relationship("Professor", back_populates="users")
+    students: 'list[Student]' = relationship("Student", back_populates="users")
 
     def __repr__(self):
         return f'<User first_name={self.first_name} last_name={self.last_name} email={self.email} role={self.role}>'
@@ -66,7 +66,7 @@ class Professor(Model):
     id: int = Column(Integer, ForeignKey('users.id'), primary_key=True)
     email: str = Column(String(50), nullable=False, unique=True)
     
-    users: User = relationship('User', back_populates='professors')
+    users: 'list[User]' = relationship('User', back_populates='professors')
     courses: 'list[Course]' = relationship('Course', secondary=course_professor_table, back_populates='professors')
 
     def __repr__(self):
