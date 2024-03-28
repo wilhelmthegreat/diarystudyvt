@@ -284,8 +284,8 @@ def join_app(session, app_id, student_email):
     app = session.query(models.App).filter_by(id=app_id).first()
     student = session.query(models.Student).filter_by(email=student_email).first()
     if app is not None and student is not None:
-        if student not in app.students:
-            app.students.append(student)
+        if student not in app.enrolled_students:
+            app.enrolled_students.append(student)
             session.commit()
             return True
         else:

@@ -413,7 +413,12 @@ def join_app(course_id: int, app_id: int):
             status_code=404,
             message="App not found",
         )
-    elif course_id not in [course.id for course in app.binded_courses]:
+    course_valid = False
+    for course in app.binded_courses:
+        if course.id == int(course_id):
+            course_valid = True
+            break
+    if not course_valid:
         session.close()
         return client_error_response(
             data={},
@@ -439,7 +444,7 @@ def join_app(course_id: int, app_id: int):
             status_code=400,
             message="The app has reached the maximum number of students",
         )
-    app = database.join_app(session=session, app_id=app_id, user_email=email)
+    app = database.join_app(session=session, app_id=app_id, student_email=email)
     if app is None:
         session.close()
         return server_error_response(
