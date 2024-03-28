@@ -64,6 +64,20 @@ def get_user(session, email) -> models.User:
         return user
     else:
         return None
+    
+
+def get_student(session: Session, user_email: str) -> models.Student:
+    """
+    This function returns a student from the database
+    """
+    user = get_user(session, user_email)
+    if user is not None:
+        if user.role == "student":
+            return user.students[0]
+        else:
+            return None
+    else:
+        return None
 
 
 def adding_course(session: Session, course_name: str, course_number: int, professor_email: str) -> bool:
