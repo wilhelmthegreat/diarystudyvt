@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (Column, Date, Float, Boolean, ForeignKey, ForeignKeyConstraint, 
                         TIMESTAMP, Integer, String, Table, UniqueConstraint, and_, func,
                         inspect, or_)
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import Mapped, backref, relationship
 
 
 Model = declarative_base()
@@ -42,8 +42,8 @@ class User(Model):
     email: str = Column(String(50), nullable=False, unique=True)
     role: str = Column(String(50), nullable=False)
     
-    professors: 'list[Professor]' = relationship("Professor", back_populates="users")
-    students: 'list[Student]' = relationship("Student", back_populates="users")
+    professors: Mapped[list['Professor']] = relationship("Professor", back_populates="users")
+    students: Mapped[list['Student']] = relationship("Student", back_populates="users")
 
     def __repr__(self):
         return f'<User first_name={self.first_name} last_name={self.last_name} email={self.email} role={self.role}>'
@@ -53,10 +53,10 @@ class Student(Model):
     id: int = Column(Integer, ForeignKey('users.id'), primary_key=True)
     email: str = Column(String(50), nullable=False, unique=True)
     
-    users: User = relationship('User', back_populates='students')
-    entry_list: 'list[Entry]' = relationship('Entry', backref='student')
-    courses: 'list[Course]' = relationship('Course', secondary=course_student_table, back_populates='students')
-    enrolled_apps: 'list[App]' = relationship('App', secondary=app_student_table, back_populates='enrolled_students')
+    users: Mapped[User] = relationship('User', back_populates='students')
+    entry_list: Mapped[list['Entry']] = relationship('Entry', backref='student')
+    courses: Mapped[list['Course']] = relationship('Course', secondary=course_student_table, back_populates='students')
+    enrolled_apps: Mapped[list['App']] = relationship('App', secondary=app_student_table, back_populates='enrolled_students')
 
     def __repr__(self):
         return f'<Student email={self.email}>'
@@ -66,8 +66,8 @@ class Professor(Model):
     id: int = Column(Integer, ForeignKey('users.id'), primary_key=True)
     email: str = Column(String(50), nullable=False, unique=True)
     
-    users: 'list[User]' = relationship('User', back_populates='professors')
-    courses: 'list[Course]' = relationship('Course', secondary=course_professor_table, back_populates='professors')
+    users: Mapped[list['User']] = relationship('User', back_populates='professors')
+    courses: Mapped[list['Course']] = relationship('Course', secondary=course_professor_table, back_populates='professors')
 
     def __repr__(self):
         return f'<Professor email={self.email}>'
@@ -78,9 +78,9 @@ class Course(Model):
     name: str = Column(String(50), nullable=False)
     identifier: str = Column(String(50), nullable=False)
     
-    students: 'list[Student]' = relationship('Student', secondary=course_student_table, back_populates='courses')
-    professors: 'list[Professor]'= relationship('Professor', secondary=course_professor_table, back_populates='courses')
-    apps = relationship('App', secondary=course_app_table, back_populates='binded_courses')
+    students: Mapped[list['Student']] = relationship('Student', secondary=course_student_table, back_populates='courses')
+    professors: Mapped[list['Professor']] = relationship('Professor', secondary=course_professor_table, back_populates='courses')
+    apps: Mapped[list['App']] = relationship('App', secondary=course_app_table, back_populates='binded_courses')
     
     def __repr__(self):
         return f'<Course name={self.name} identifier={self.identifier}>'
@@ -96,10 +96,10 @@ class App(Model):
     max_students = Column(Integer, nullable=False) # Maximum number of students in the app
     template = Column(String(50), nullable=False) # Template of the app
     
-    enrolled_students: 'list[Student]' = relationship('Student', secondary=app_student_table, back_populates='enrolled_apps')
-    binded_courses: 'list[Course]' = relationship('Course', secondary=course_app_table, back_populates='apps')
-    entry_list: 'list[Entry]' = relationship('Entry', secondary=app_entry_table, backref='app')
-    stopwords: 'list[Stopword]' = relationship('Stopword', back_populates='app')
+    enrolled_students: Mapped[list['Student']] = relationship('Student', secondary=app_student_table, back_populates='enrolled_apps')
+    binded_courses: Mapped[list['Course']] = relationship('Course', secondary=course_app_table, back_populates='apps')
+    entry_list: Mapped[list['Entry']] = relationship('Entry', secondary=app_entry_table, backref='app')
+    stopwords: Mapped[list['Stopword']] = relationship('Stopword', back_populates='app')
     
     def __repr__(self):
         return f'<App intro={self.intro} start_time={self.start_time} end_time={self.end_time} num_entries={self.num_entries} max_students={self.max_students}>'
@@ -113,7 +113,24 @@ class Stopword(Model):
     enabled: bool = Column(Boolean, nullable=False, default=True) # This will be used as a flag to make sure when we change the stopword, 
                                                             # we don't delete it from the database to make the app entries consistent.
     
-    app: App = relationship('App', back_populates='stopwords')
+    app: Mapped[App] = relationship('App', back_populates='stopwords')
     
     def __repr__(self):
         return f'<Stopword word={self.word}, app_id={self.app_id}>'
+ 
+
+class Entry(Model):
+    __tablename__ = 'entries'
+    id: int = Column(Integer, primary_key=True, autoincrement=True)
+    student_id: int = Column(Integer, ForeignKey('students.id'), nullable=False)
+    app_id: int = Column(Integer, ForeignKey('apps.id'), nullable=False)
+    content: str = Column(String(50), nullable=False)
+    create_at: int = Column(TIMESTAMP, nullable=False)
+    update_at: int = Column(TIMESTAMP, nullable=False)
+    
+    student: Mapped[Student] = relationship('Student', backref='entry_list')
+    app: Mapped[App] = relationship('App', backref='entry_list')
+    
+    def __repr__(self):
+        return f'<Entry content={self.content} create_at={self.create_at} update_at={self.update_at}>'
+
