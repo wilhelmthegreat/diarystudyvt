@@ -3,6 +3,7 @@ from sqlalchemy import (Column, Date, Float, Boolean, ForeignKey, ForeignKeyCons
                         TIMESTAMP, Integer, String, Table, UniqueConstraint, and_, func,
                         inspect, or_)
 from sqlalchemy.orm import Mapped, backref, relationship
+from datetime import datetime
 
 
 Model = declarative_base()

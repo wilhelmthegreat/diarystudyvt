@@ -361,7 +361,7 @@ def get_app_entries(session: Session, app_id: int, user_email: str) -> list[mode
         return None
 
 
-def add_entry(session: Session, app_id: int, student_email: str, entry_text: str, study_start_time: int, study_duration_minutes: int, create_at: int = datetime.datetime.now(), update_at: int = datetime.datetime.now()) -> models.Entry:
+def add_entry(session: Session, app_id: int, student_email: str, entry_text: str, study_start_time: int, study_duration_minutes: int, create_at = datetime.datetime.now(), update_at = datetime.datetime.now()) -> models.Entry:
     """
     This function adds an entry to the database.
     """
@@ -374,7 +374,7 @@ def add_entry(session: Session, app_id: int, student_email: str, entry_text: str
                 student_id=student.id,
                 app_id=app.id,
                 content=entry_text,
-                study_start_time=study_start_time,
+                study_start_time=datetime.datetime.fromtimestamp(study_start_time),
                 study_duration_minutes=study_duration_minutes,
                 create_at=create_at,
                 update_at=update_at
@@ -418,14 +418,14 @@ def get_entry(session: Session, entry_id: int, user_email: str) -> models.Entry:
                 
     
 
-def edit_entry(session: Session, entry_id: int, user_email: str, entry_text: str, study_start_time: int, study_duration_minutes: int, update_at: int = datetime.datetime.now()) -> models.Entry:
+def edit_entry(session: Session, entry_id: int, user_email: str, entry_text: str, study_start_time: int, study_duration_minutes: int, update_at = datetime.datetime.now()) -> models.Entry:
     """
     This function edits an entry in the database.
     """
     entry = get_entry(session, entry_id, user_email)
     if entry is not None:
         entry.content = entry_text
-        entry.study_start_time = study_start_time
+        entry.study_start_time = datetime.datetime.fromtimestamp(study_start_time)
         entry.study_duration_minutes = study_duration_minutes
         entry.update_at = update_at
         session.commit()
