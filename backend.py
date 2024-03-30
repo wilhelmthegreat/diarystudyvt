@@ -16,6 +16,7 @@ from routes.auth import auth_routes
 from routes.users import users_routes
 from routes.courses import courses_routes
 from routes.apps import apps_routes
+from routes.entries import entries_routes
 
 dotenv_path = os.path.join(os.path.dirname(__file__), 'config', 'secret', '.env')
 load_dotenv(dotenv_path)
@@ -40,6 +41,7 @@ app.register_blueprint(auth_routes, url_prefix="/auth")
 app.register_blueprint(users_routes, url_prefix="/users")
 app.register_blueprint(courses_routes, url_prefix="/courses")
 app.register_blueprint(apps_routes, url_prefix="/courses/<course_id>/apps")
+app.register_blueprint(entries_routes, url_prefix="/courses/<course_id>/apps/<app_id>/entries")
 
 
 @app.route("/professor/<username>/<course_number>/get_grades", methods=["POST"])

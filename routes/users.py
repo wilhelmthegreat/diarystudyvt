@@ -67,6 +67,15 @@ def get_user_info():
         "email": user.email,
         "role": user.role,
     }
+    if user.role == "student":
+        # Add student specific information
+        student = database.get_student(session=session, user_email=email)
+        user_info["student"] = {
+            "email": student.email,
+            "courses": [course.id for course in student.courses],
+            "enrolledApps": [app.id for app in student.enrolled_apps],
+        }
+            
     session.close()
     return success_response(data={"user": user_info})
     
