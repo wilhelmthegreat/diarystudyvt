@@ -5,3 +5,4 @@ sklearn
 bertopic
 gensim
 matplotlib
+lda
