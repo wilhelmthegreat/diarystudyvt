@@ -246,13 +246,19 @@ def get_app(course_id: int, app_id: int):
         "stopwords": stopwords,
     }
     if user.role == "student":
+        enrolled = False
         # Check if the user is enrolled in the app
-        if email not in app.enrolled_students:
-            session.close()
+        for student in app.enrolled_students:
+            if student.email == email:
+                returned_app["is_enrolled"] = True
+                # Get the user's entries count
+                entries = database.get_app_entries(session=session, app_id=app_id, user_email=email)
+                returned_app["entries_count"] = len(entries)
+                enrolled = True
+                break
+        if not enrolled:
             returned_app["is_enrolled"] = False
-        else:
-            session.close()
-            returned_app["is_enrolled"] = True
+        session.close()
     return success_response(data={"app": returned_app})
 
 

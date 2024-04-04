@@ -381,6 +381,9 @@ def add_entry(session: Session, app_id: int, student_email: str, entry_text: str
             )
             session.add(entry)
             session.commit()
+            # Add the entry to the app
+            app.entry_list.append(entry)
+            session.commit()
             return entry
         else:
             return None
