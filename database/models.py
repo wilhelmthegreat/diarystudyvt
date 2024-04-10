@@ -91,8 +91,8 @@ class App(Model):
     id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = Column(String(50), nullable=False) # Name of the app
     intro: Mapped[str] = Column(String(50), nullable=False) # Intro to the app
-    start_time: Mapped[int] = Column(TIMESTAMP, nullable=False) # Start time of the app
-    end_time: Mapped[int] = Column(TIMESTAMP, nullable=False) # End time of the app
+    start_time: Mapped[datetime] = Column(TIMESTAMP, nullable=False) # Start time of the app
+    end_time: Mapped[datetime] = Column(TIMESTAMP, nullable=False) # End time of the app
     num_entries: Mapped[int] = Column(Integer, nullable=False) # Number of entries in the app
     max_students: Mapped[int] = Column(Integer, nullable=False) # Maximum number of students in the app
     template: Mapped[str] = Column(String(50), nullable=False) # Template of the app
