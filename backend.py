@@ -10,7 +10,7 @@ from flask_cors import CORS, cross_origin
 import jwt
 import database.connect as database
 from config.jwt import jwt_algorithm, jwt_private_key, jwt_public_key
-from config.flask import bind_host, flask_debug, port
+from config.flask import bind_host, flask_debug, port, flask_use_ssl, flask_key_path, flask_cert_path
 from config.database import database_uri
 from routes.auth import auth_routes
 from routes.users import users_routes
@@ -59,4 +59,12 @@ def get_grades(username, course_number):
 
 
 if __name__ == "__main__":
-    app.run(debug=flask_debug(), host=bind_host(), port=port())
+    if flask_use_ssl():
+        app.run(
+            debug=flask_debug(),
+            host=bind_host(),
+            port=port(),
+            ssl_context=(flask_cert_path(), flask_key_path()),
+        )
+    else:
+        app.run(debug=flask_debug(), host=bind_host(), port=port())

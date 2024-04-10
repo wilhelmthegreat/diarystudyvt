@@ -65,6 +65,74 @@ def flask_debug() -> bool:
     return obtained_debug.upper() == "TRUE"
 
 
+def flask_use_ssl() -> bool:
+    """This method will read the use SSL flag from the `.env`
+    file and return it as a boolean to enable or disable Flask's
+    SSL mode.
+    
+    
+    Args:
+        None.
+    
+    
+    Returns:
+        bool: The use SSL flag from the environment.
+    
+    
+    Raises:
+        KeyError: If the `SSL_ENABLED` key is not found in the environment.
+    """
+    obtained_use_ssl = os.getenv("SSL_ENABLED")
+    if obtained_use_ssl is None:
+        return False # Temporary put to False to avoid error
+        # raise KeyError("SSL_ENABLED not found in the environment.")
+    return obtained_use_ssl.upper() == "TRUE"
+
+
+def flask_cert_path() -> str:
+    """This method will read the certificate path from the `.env`
+    file and return it as a string.
+    
+    
+    Args:
+        None.
+    
+    
+    Returns:
+        str: The certificate path from the environment.
+    
+    
+    Raises:
+        KeyError: If the `SERVER_CERT` key is not found in the environment.
+    """
+    obtained_cert_path = os.getenv("SERVER_CERT")
+    if obtained_cert_path is None:
+        raise KeyError("SERVER_CERT not found in the environment.")
+    return obtained_cert_path
+
+
+def flask_key_path() -> str:
+    """This method will read the key path from the `.env`
+    file and return it as a string.
+    
+    
+    Args:
+        None.
+    
+    
+    Returns:
+        str: The key path from the environment.
+    
+    
+    Raises:
+        KeyError: If the `SERVER_KEY` key is not found in the environment.
+    """
+    obtained_key_path = os.getenv("SERVER_KEY")
+    if obtained_key_path is None:
+        raise KeyError("SERVER_KEY not found in the environment.")
+    return obtained_key_path
+
+
 def port() -> int:
     """This method will read the port from the `.env` file and return
     it as an integer.
