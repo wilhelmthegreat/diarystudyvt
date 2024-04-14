@@ -154,6 +154,20 @@ class TextRank4Sentences():
                 index += 1
 
         return top_sentences
+    
+    def get_word_sentence(self, word):
+        if self.pr_vector is not None:
+
+            sorted_pr = np.argsort(self.pr_vector)
+            sorted_pr = list(sorted_pr)
+            sorted_pr.reverse()
+
+            for pr in sorted_pr:
+                sent = self.sentences[pr]
+                sent = normalize_whitespace(sent)
+                if word in sent:
+                    return(sent)
+            return("error")
 
     def analyze(self, text, stop_words=None):
         self.text_str = text
@@ -165,8 +179,11 @@ class TextRank4Sentences():
 
         self.pr_vector = self._run_page_rank(similarity_matrix)
 
-
 def get_best_sentence(txt):
     tr4sh = TextRank4Sentences()
     tr4sh.analyze(txt)
     return(tr4sh.get_top_sentences(1)[0])
+def get_best_sentence_from_word(txt, wrd):
+    tr4sh = TextRank4Sentences()
+    tr4sh.analyze(txt)
+    return(tr4sh.get_word_sentence(wrd))
