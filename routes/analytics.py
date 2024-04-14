@@ -10,7 +10,7 @@ from utils.api_response_wrapper import (
     server_error_response,
 )
 from datetime import datetime
-from . import modelling
+from dsmodelling import modelling
 
 # Set up the routes blueprint
 analytics_routes = Blueprint("analytics_routes", __name__)
