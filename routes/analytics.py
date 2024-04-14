@@ -44,13 +44,13 @@ def get_entries_dashboard(course_id:int, app_id: int):
     _, Session, _ = database.init_connection(database_uri(), echo=False)
     session = Session()
     user = database.get_user(session=session, email=email)
-    if user is None or user.role != "professor":
+    if user is None:
         session.close()
-        return server_error_response(
+        return client_error_response(
             data={},
             internal_code=-1,
             status_code=404,
-            message="User not found or User is not a professor",
+            message="User not found",
         )
     # Check if the given course_id and app_id are valid
     course = database.get_course(session=session, course_id=course_id, user_email=email)
@@ -121,13 +121,13 @@ def word_clicked_dashboard(course_id:int, app_id:int, word:str):
     _, Session, _ = database.init_connection(database_uri(), echo=False)
     session = Session()
     user = database.get_user(session=session, email=email)
-    if user is None or user.role != "professor":
+    if user is None:
         session.close()
-        return server_error_response(
+        return client_error_response(
             data={},
             internal_code=-1,
             status_code=404,
-            message="User not found or User is not a professor",
+            message="User not found",
         )
     # Check if the given course_id and app_id are valid
     course = database.get_course(session=session, course_id=course_id, user_email=email)
