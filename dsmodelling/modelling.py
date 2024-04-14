@@ -15,10 +15,7 @@ tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
 aitokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
 model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
 def _dist_to_dict(l):
-    acc = dict()
-    for s in l:
-        acc[s[0]] = s[1]
-    return(acc)
+    return([{'word': s[0], 'freq': s[1]} for s in l])
 stopwords = nltk.corpus.stopwords.words('english')
 #Generates frequency distribution object to be used in a word cloud
 def word_cloud(text, stpw, num):
