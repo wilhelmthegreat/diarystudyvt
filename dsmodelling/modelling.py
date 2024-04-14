@@ -2,15 +2,15 @@ import nltk
 from nltk.text import Text
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
-from . import textrank_algorithm
+from dsmodelling import textrank_algorithm
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 
 #Download NLTK libraries
-nltk.download('punkt')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-nltk.download('stopwords')
+nltk.download('punkt', download_dir='./cache')
+nltk.download('wordnet', download_dir='./cache')
+nltk.download('omw-1.4', download_dir='./cache')
+nltk.download('stopwords', download_dir='./cache')
 tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
 aitokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
 model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
