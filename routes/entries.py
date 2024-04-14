@@ -15,7 +15,6 @@ from utils.api_response_wrapper import (
     server_error_response,
 )
 from datetime import datetime
-from . import modelling
 
 # Set up the routes blueprint
 entries_routes = Blueprint("entries_routes", __name__)
@@ -80,128 +79,6 @@ def get_entries(course_id: int, app_id: int):
     session.close()
     return success_response(data={"entries": all_entries})
 
-def get_entries_dashboard(course_id:int, app_id: int):
-    """This route will get the wordcloud object of all entries in a coures if the user is a professor"""
-    jwt_result = validate_token_in_request(request)
-    if jwt_result["code"] != 0:
-        return client_error_response(
-            data={},
-            internal_code=jwt_result["code"],
-            status_code=401,
-            message=jwt_result["message"],
-        )
-    payload = jwt_result["data"]
-    email = payload["email"]
-    _, Session, _ = database.init_connection(database_uri(), echo=False)
-    session = Session()
-    user = database.get_user(session=session, email=email)
-    if user is None or user.role != "professor":
-        session.close()
-        return server_error_response(
-            data={},
-            internal_code=-1,
-            status_code=404,
-            message="User not found or User is not a professor",
-        )
-    # Check if the given course_id and app_id are valid
-    course = database.get_course(session=session, course_id=course_id, user_email=email)
-    if course is None:
-        session.close()
-        return client_error_response(
-            data={},
-            internal_code=-1,
-            status_code=404,
-            message="Course not found",
-        )
-    app = database.get_app(session=session, app_id=app_id, user_email=email)
-    if app is None:
-        session.close()
-        return client_error_response(
-            data={},
-            internal_code=-1,
-            status_code=404,
-            message="App not found or you are not enrolled in this app",
-        )
-    entries = database.get_app_entries(session=session, app_id=app_id)
-    all_entries = []
-    sents = []
-    for entry in entries:
-        all_entries.append(entry.content)
-        sents.append({
-            'sentence': modelling.get_sentence_no_word(entry.content),
-            'sentiment': modelling.sentiment(entry.content),
-            'user': entry.student_id
-            })
-    stopw = []
-    for stopword in app.stopwords:
-        stopw.apend(stopword.word)
-    session.close()
-    return success_response(data={
-        "wordcloud": modelling.word_cloud('\n'.join(all_entries), stopw, 12),
-        "sentences": sents,
-        "graph": {'x': [modelling.word_count(e) for e in all_entries], 'y': [modelling.sentiment(e) for e in all_entries]}
-        })
-
-def word_clicked_dashboard(course_id:int, app_id:int, wrd:str):
-    """This route will get the wordcloud object of all entries in a coures if the user is a professor"""
-    jwt_result = validate_token_in_request(request)
-    if jwt_result["code"] != 0:
-        return client_error_response(
-            data={},
-            internal_code=jwt_result["code"],
-            status_code=401,
-            message=jwt_result["message"],
-        )
-    payload = jwt_result["data"]
-    email = payload["email"]
-    _, Session, _ = database.init_connection(database_uri(), echo=False)
-    session = Session()
-    user = database.get_user(session=session, email=email)
-    if user is None or user.role != "professor":
-        session.close()
-        return server_error_response(
-            data={},
-            internal_code=-1,
-            status_code=404,
-            message="User not found or User is not a professor",
-        )
-    # Check if the given course_id and app_id are valid
-    course = database.get_course(session=session, course_id=course_id, user_email=email)
-    if course is None:
-        session.close()
-        return client_error_response(
-            data={},
-            internal_code=-1,
-            status_code=404,
-            message="Course not found",
-        )
-    app = database.get_app(session=session, app_id=app_id, user_email=email)
-    if app is None:
-        session.close()
-        return client_error_response(
-            data={},
-            internal_code=-1,
-            status_code=404,
-            message="App not found or you are not enrolled in this app",
-        )
-    entries = database.get_app_entries(session=session, app_id=app_id)
-    all_entries = []
-    sents = []
-    for entry in entries:
-        all_entries.append(entry.content)
-        sents.append({
-            'sentence': modelling.get_sentence(entry.content, wrd),
-            'sentiment': modelling.sentiment(entry.content),
-            'user': entry.student_id
-            })
-    stopw = []
-    for stopword in app.stopwords:
-        stopw.append(stopword.word)
-    session.close()
-    return success_response(data={
-        'wordcloud': modelling.associated_word_cloud('\n'.join(all_entries), wrd),
-        'sentences': sents
-    })
 
 @entries_routes.route("/", methods=["POST"])
 @entries_routes.route("", methods=["POST"])
