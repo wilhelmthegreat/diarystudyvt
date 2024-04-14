@@ -29,6 +29,18 @@ def get_entries_dashboard(course_id:int, app_id: int):
         )
     payload = jwt_result["data"]
     email = payload["email"]
+    # Check if the user set the parameter indicating the limit of words to be shown
+    limit = request.args.get("limit")
+    limit_num = 12 # Default value
+    if limit is not None and limit.isdigit() and int(limit) > 0 and int(limit) < 100:
+        limit_num = int(limit)
+    elif limit is not None:
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=400,
+            message="Invalid limit value, you must provide a number between 1 and 100",
+        )
     _, Session, _ = database.init_connection(database_uri(), echo=False)
     session = Session()
     user = database.get_user(session=session, email=email)
@@ -74,7 +86,7 @@ def get_entries_dashboard(course_id:int, app_id: int):
         stopw.append(stopword.word)
     session.close()
     return success_response(data={
-        "wordcloud": modelling.word_cloud('\n'.join(all_entries), stopw, 12),
+        "wordcloud": modelling.word_cloud('\n'.join(all_entries), stopw, limit_num),
         "sentences": sents,
         "graph": {'x': [modelling.word_count(e) for e in all_entries], 'y': [modelling.sentiment(e) for e in all_entries]}
         })
@@ -94,6 +106,18 @@ def word_clicked_dashboard(course_id:int, app_id:int, word:str):
         )
     payload = jwt_result["data"]
     email = payload["email"]
+    # Check if the user set the parameter indicating the limit of words to be shown
+    limit = request.args.get("limit")
+    limit_num = 12 # Default value
+    if limit is not None and limit.isdigit() and int(limit) > 0 and int(limit) < 100:
+        limit_num = int(limit)
+    elif limit is not None:
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=400,
+            message="Invalid limit value, you must provide a number between 1 and 100",
+        )
     _, Session, _ = database.init_connection(database_uri(), echo=False)
     session = Session()
     user = database.get_user(session=session, email=email)
@@ -139,6 +163,6 @@ def word_clicked_dashboard(course_id:int, app_id:int, word:str):
         stopw.append(stopword.word)
     session.close()
     return success_response(data={
-        'wordcloud': modelling.associated_word_cloud('\n'.join(all_entries), word, stopw, 12),
+        'wordcloud': modelling.associated_word_cloud('\n'.join(all_entries), word, stopw, limit_num),
         'sentences': sents
     })

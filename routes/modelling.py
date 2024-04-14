@@ -28,7 +28,7 @@ def word_cloud(text, stpw, num):
     distObj = wordDist.most_common(num)
     return(_dist_to_dict(distObj))
 #Generates distribution to be used in a word cloud based on both frequency and proximity to a chosen word
-def associated_word_cloud(text, word, stpw, num):
+def associated_word_cloud(text, word, stpw, num=12):
     txt = Text(tokenizer.tokenize(text))
     con_list = txt.concordance_list(word, width=40)
     acc = list()
