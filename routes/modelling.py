@@ -2,7 +2,7 @@ import nltk
 from nltk.text import Text
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
-import textrank_algorithm
+from . import textrank_algorithm
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 

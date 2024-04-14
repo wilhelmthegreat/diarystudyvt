@@ -15,7 +15,7 @@ from utils.api_response_wrapper import (
     server_error_response,
 )
 from datetime import datetime
-import modelling
+from . import modelling
 
 # Set up the routes blueprint
 entries_routes = Blueprint("entries_routes", __name__)
@@ -276,7 +276,7 @@ def new_entry(course_id: int, app_id: int):
             message="You are not enrolled in this app",
         )
     # Santize the content before adding it to the database
-    entry_text = quote(entry_text)
+    entry_text = quote(entry_text, safe=" ,.?!;\n\'\"")
     # Add the entry to the database
     entry = database.add_entry(session=session, student_email=email, app_id=app_id, entry_text=entry_text, study_start_time=study_start_time, study_duration_minutes=study_duration_minutes)
     if entry is None:
