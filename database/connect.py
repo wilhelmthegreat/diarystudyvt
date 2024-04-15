@@ -66,6 +66,17 @@ def get_user(session, email) -> models.User:
         return None
     
 
+def get_user_by_id(session: Session, user_id: int) -> models.User:
+    """
+    This function returns a user from the database.
+    """
+    user: models.User = session.query(models.User).filter_by(id=user_id).first()
+    if user is not None:
+        return user
+    else:
+        return None
+    
+
 def get_student(session: Session, user_email: str) -> models.Student:
     """
     This function returns a student from the database
@@ -76,6 +87,17 @@ def get_student(session: Session, user_email: str) -> models.Student:
             return user.students[0]
         else:
             return None
+    else:
+        return None
+    
+
+def get_student_by_id(session: Session, student_id: int) -> models.Student:
+    """
+    This function returns a student from the database.
+    """
+    student: models.Student = session.query(models.Student).filter_by(id=student_id).first()
+    if student is not None:
+        return student
     else:
         return None
 
