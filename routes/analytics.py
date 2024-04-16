@@ -88,7 +88,7 @@ def get_entries_dashboard(course_id:int, app_id: int):
     return success_response(data={
         "wordcloud": modelling.word_cloud('\n'.join(all_entries), stopw, limit_num),
         "sentences": sents,
-        "graph": {'x': [modelling.word_count(e) for e in all_entries], 'y': [modelling.sentiment(e) for e in all_entries]}
+        "graph": [{'x': modelling.word_count(e), 'y': modelling.sentiment(e)} for e in all_entries]
         })
 
 
