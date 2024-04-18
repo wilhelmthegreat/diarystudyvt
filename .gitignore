@@ -1560,3 +1560,7 @@ client_secret.json
 # Ignore all files in the config/secret directory, keeping the README
 config/secret/*
 !config/secret/README.md
+
+# Ignore the client folder as this is for the prod build
+client/*
+!client/README.md

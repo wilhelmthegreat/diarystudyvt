@@ -35,6 +35,10 @@ from utils.api_response_wrapper import (
     client_error_response,
     server_error_response,
 )
+from dotenv import load_dotenv
+import os
+
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "config", "secret", ".env"))
 
 # Set up the routes blueprint
 auth_routes = Blueprint("auth_routes", __name__)
@@ -101,11 +105,19 @@ def google_auth():
     # Use the access token to access the user id
     token_url = "https://oauth2.googleapis.com/token"
     google_client_secret_dict = google_client_secrets()
+    if os.getenv("FLASK_MODE") is None:
+        flask_mode = "development"
+    else:
+        flask_mode = os.getenv("FLASK_MODE")
+    if flask_mode.lower() == "production":
+        redirect_uri = request.host_url + "callback/google" # Redirect URI for production
+    else:
+        redirect_uri = google_client_secret_dict["web"]["redirect_uris"][1] # Redirect URI for development
     data = {
         "code": code,
         "client_id": google_client_secret_dict["web"]["client_id"],
         "client_secret": google_client_secret_dict["web"]["client_secret"],
-        "redirect_uri": google_client_secret_dict["web"]["redirect_uris"][1],
+        "redirect_uri": redirect_uri,
         "grant_type": "authorization_code",
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
