@@ -96,7 +96,7 @@ def get_entries_dashboard(course_id:int, app_id: int):
 
 @analytics_routes.route("/word_relations/<word>", methods=["GET"])
 @analytics_routes.route("/word_relations/<word>", methods=["GET"])
-def word_clicked_dashboard(course_id:int, app_id:int, word:str):
+def word_clicked_dashboard(course_id:int, app_id:int, words:list):
     """This route will get the wordcloud object of all entries in a coures if the user is a professor"""
     jwt_result = validate_token_in_request(request)
     if jwt_result["code"] != 0:
@@ -157,7 +157,7 @@ def word_clicked_dashboard(course_id:int, app_id:int, word:str):
         all_entries.append(entry.content)
         usr = database.get_user_by_id(session, entry.student_id)
         sents.append({
-            'sentence': modelling.get_sentence(entry.content, word),
+            'sentence': modelling.get_sentence(entry.content, words),
             'sentiment': modelling.sentiment(entry.content),
             'user': usr.first_name+" "+usr.last_name,
             'user_id': entry.student_id,
@@ -167,6 +167,6 @@ def word_clicked_dashboard(course_id:int, app_id:int, word:str):
         stopw.append(stopword.word)
     session.close()
     return success_response(data={
-        'wordcloud': modelling.associated_word_cloud('\n'.join(all_entries), word, stopw, limit_num),
+        'wordcloud': modelling.associated_word_cloud('\n'.join(all_entries), words, stopw, limit_num),
         'sentences': sents
     })

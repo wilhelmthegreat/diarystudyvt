@@ -155,7 +155,7 @@ class TextRank4Sentences():
 
         return top_sentences
     
-    def get_word_sentence(self, word):
+    def get_word_sentence(self, words):
         if self.pr_vector is not None:
 
             sorted_pr = np.argsort(self.pr_vector)
@@ -165,7 +165,8 @@ class TextRank4Sentences():
             for pr in sorted_pr:
                 sent = self.sentences[pr]
                 sent = normalize_whitespace(sent)
-                if word in sent:
+                tokenized_sentence = word_tokenize(sent)
+                if len(set(words).intersection(set(tokenized_sentence))) > 0:
                     return(sent)
             return("error")
 
@@ -183,7 +184,7 @@ def get_best_sentence(txt):
     tr4sh = TextRank4Sentences()
     tr4sh.analyze(txt)
     return(tr4sh.get_top_sentences(1)[0])
-def get_best_sentence_from_word(txt, wrd):
+def get_best_sentence_from_word(txt, wrds):
     tr4sh = TextRank4Sentences()
     tr4sh.analyze(txt)
-    return(tr4sh.get_word_sentence(wrd))
+    return(tr4sh.get_word_sentence(wrds))

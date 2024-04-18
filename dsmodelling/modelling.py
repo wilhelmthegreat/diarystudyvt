@@ -25,24 +25,26 @@ def word_cloud(text, stpw, num):
     distObj = wordDist.most_common(num)
     return(_dist_to_dict(distObj))
 #Generates distribution to be used in a word cloud based on both frequency and proximity to a chosen word
-def associated_word_cloud(text, word, stpw, num=12):
+def associated_word_cloud(text, words, stpw, num=12):
     txt = Text(tokenizer.tokenize(text))
-    con_list = txt.concordance_list(word, width=40)
     acc = list()
-    for line in con_list:
-        acc+=line.left
-        acc+=line.right
-    words = [w for w in acc if w.lower() not in (stopwords+stpw+[word])]
-    wordDist = nltk.FreqDist(words)
+    for word in words:
+        con_list = txt.concordance_list(word, width=40)
+        for line in con_list:
+            acc+=line.left
+            acc+=line.right
+    newWords = [w for w in acc if w.lower() not in (stopwords+stpw+words)]
+    wordDist = nltk.FreqDist(newWords)
     distObj = wordDist.most_common(num)
     return(_dist_to_dict(distObj))
 #Gets a list of user entries with no keyword to search for and generates the most characteristic/important sentence for each one
 def get_sentence_no_word(e):
     return(textrank_algorithm.get_best_sentence(e))
 #Gets a list of user entries with a keyword to search for and shows the context in which the word was used if it's present and just shows the most characteristic sentence if not present.
-def get_sentence(e, wrd):
-        if (wrd in e):
-            return(textrank_algorithm.get_best_sentence_from_word(e, wrd))
+def get_sentence(e, wrds):
+        tokens = tokenizer.tokenize(e)
+        if (len(set(wrds).intersection(set(tokens))) > 0):
+            return(textrank_algorithm.get_best_sentence_from_word(e, wrds))
         else:
             return(textrank_algorithm.get_best_sentence(e))
 #Analyzes the sentiment of a user post and rates it from -1 being very negative to 1 being very positive
