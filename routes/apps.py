@@ -231,9 +231,18 @@ def get_app(course_id: int, app_id: int):
             status_code=404,
             message="App not found",
         )
-    stopwords = []
-    for stopword in app.stopwords:
-        stopwords.append(stopword.word)
+    # Get the students enrolled in the app
+    if user.role == "professor":
+        students = []
+        for student in app.enrolled_students:
+            students.append({
+                "id": student.id,
+                "email": student.email
+            })
+        stopwords = []
+        for stopword in app.stopwords:
+            stopwords.append(stopword.word)
+    
     returned_app = {
         "id": app.id,
         "name": app.name,
@@ -243,7 +252,6 @@ def get_app(course_id: int, app_id: int):
         "num_entries": app.num_entries,
         "max_students": app.max_students,
         "template_link": app.template,
-        "stopwords": stopwords,
     }
     if user.role == "student":
         enrolled = False
@@ -258,6 +266,10 @@ def get_app(course_id: int, app_id: int):
                 break
         if not enrolled:
             returned_app["is_enrolled"] = False
+        session.close()
+    else:
+        returned_app["students"] = students
+        returned_app["stopwords"] = stopwords
         session.close()
     return success_response(data={"app": returned_app})
 
