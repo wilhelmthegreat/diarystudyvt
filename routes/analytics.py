@@ -76,10 +76,11 @@ def get_entries_dashboard(course_id:int, app_id: int):
     sents = []
     for entry in entries:
         all_entries.append(entry.content)
+        usr = database.get_user_by_id(session, entry.student_id)
         sents.append({
             'sentence': modelling.get_sentence_no_word(entry.content),
             'sentiment': modelling.sentiment(entry.content),
-            'user': entry.student_id
+            'user': usr.first_name+" "+usr.last_name
             })
     stopw = []
     for stopword in app.stopwords:
@@ -153,7 +154,7 @@ def word_clicked_dashboard(course_id:int, app_id:int, word:str):
     sents = []
     for entry in entries:
         all_entries.append(entry.content)
-        usr = database.get_user_by_id(entry.student_id)
+        usr = database.get_user_by_id(session, entry.student_id)
         sents.append({
             'sentence': modelling.get_sentence(entry.content, word),
             'sentiment': modelling.sentiment(entry.content),
