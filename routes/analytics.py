@@ -153,7 +153,7 @@ def word_clicked_dashboard(course_id:int, app_id:int, word:str):
     sents = []
     for entry in entries:
         all_entries.append(entry.content)
-        usr = databse.get_user_by_id(entry.student_id)
+        usr = database.get_user_by_id(entry.student_id)
         sents.append({
             'sentence': modelling.get_sentence(entry.content, word),
             'sentiment': modelling.sentiment(entry.content),
