@@ -40,6 +40,46 @@ from utils.api_response_wrapper import (
 auth_routes = Blueprint("auth_routes", __name__)
 
 
+# This route is only for demo purposes
+@auth_routes.route("/email", methods=["GET"])
+@auth_routes.route("/email/", methods=["GET"])
+def email_login():
+    if "email" not in request.args:
+        return client_error_response(
+            data={},
+            internal_code=-102,
+            status_code=400,
+            message="No email provided",
+        )
+    email = request.args.get("email")
+    # Sanitize the email, with @ and . allowed
+    email = quote(email, safe="@.")
+    
+    _, Session, _ = database.init_connection(database_uri(), echo=False)
+    session = Session()
+    user = database.get_user(session, email)
+    if user is not None:
+        user_info = {
+            "isRegistered": True,
+            "email": user.email,
+            "jwt": jwt_utils.generate_token(
+                {
+                    "email": user.email,
+                }
+            ),
+        }
+        session.close()
+        return success_response(user_info, internal_code=0, status_code=200, message="")
+    else:
+        user_info = {
+            "isRegistered": False,
+            "email": email,
+            "jwt": jwt_utils.generate_token({"email": email}),
+        }
+        session.close()
+        return success_response(user_info, internal_code=0, status_code=200, message="")
+
+
 @auth_routes.route("/google", methods=["GET"])
 @auth_routes.route("/google/", methods=["GET"])
 def google_auth():
