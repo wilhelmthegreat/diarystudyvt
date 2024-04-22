@@ -68,5 +68,5 @@ tzdata==2024.1
 umap-learn==0.5.6
 urllib3==2.2.1
 Werkzeug==3.0.2
-wordcloud==1.9.3
+wordcloud
 wrapt==1.16.0
