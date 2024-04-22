@@ -29,3 +29,7 @@ Detailed Description
   - `FLASK_DEBUG`: Set this to `True` to enable debug mode in Flask
   - `PORT`: The port on which the application should run
   - `FLASK_HOST`: The binding host for the Flask application
+  - `FLASK_MODE`: The mode in which the Flask application should run. Set this to `development` for development mode and `production` for production mode
+  - `SSL_ENABLED`: Set this to `True` to enable SSL for the application
+    - `SERVER_CERT`: The path to the SSL certificate file
+    - `SERVER_KEY`: The path to the SSL key file
