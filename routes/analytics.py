@@ -222,6 +222,8 @@ def lda_html(course_id:int, app_id:int):
     for entry in entries:
         all_entries.append(entry.content)
     session.close()
-    lda_model, corpus, dictionary = lda_modelling.lda_model(all_entries, num_topics=5, passes=15)
+    if len(all_entries) == 0:
+        return '<h1>No entries found in this app!</h1>'
+    lda_model, corpus, dictionary = lda_modelling.lda_model(all_entries, num_topics=4, passes=15)
     lda_visualization_html = lda_modelling.lda_visualization_html(lda_model, corpus, dictionary)
     return lda_visualization_html

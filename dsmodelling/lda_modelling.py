@@ -20,7 +20,6 @@ def lda_model(texts: list[str], num_topics=10, passes=15) -> list[LdaModel, list
     return LdaModel(corpus, num_topics=num_topics, id2word=dictionary, passes=passes), corpus, dictionary
 
 def lda_visualization_html(lda_model: LdaModel, corpus: list[tuple[int, int]], dictionary: corpora.Dictionary):
-    
     vis_data = pyLDAvis.gensim.prepare(lda_model, corpus, dictionary)
     return pyLDAvis.prepared_data_to_html(vis_data)
 
