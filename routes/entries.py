@@ -63,17 +63,65 @@ def get_entries(course_id: int, app_id: int):
             status_code=404,
             message="App not found or you are not enrolled in this app",
         )
-    entries = database.get_app_entries(session=session, app_id=app_id, user_email=email)
+    # Check if the user is professor, if not, check if student_id is provided
+    # if student_id is provided, check if it is the same as the user's id
+    student_id = request.args.get("student_id")
+    if user.role == "professor":
+        if student_id is not None:
+            student = database.get_student_by_id(session=session, student_id=int(student_id))
+            if student is None or student not in course.students:
+                session.close()
+                return client_error_response(
+                    data={},
+                    internal_code=-1,
+                    status_code=404,
+                    message="Student not found",
+                )
+            else:
+                # Check if the student is enrolled in the app
+                if app.enrolled_students is not None:
+                    if student not in app.enrolled_students:
+                        session.close()
+                        return client_error_response(
+                            data={},
+                            internal_code=-1,
+                            status_code=403,
+                            message="The student is not enrolled in this app",
+                        )
+                else:
+                    session.close()
+                    return client_error_response(
+                        data={},
+                        internal_code=-1,
+                        status_code=403,
+                        message="The student is not enrolled in this app",
+                    )
+        else:
+            student_id = None
+    else:
+        if student_id is not None:
+            if student_id != str(user.id):
+                session.close()
+                return client_error_response(
+                    data={},
+                    internal_code=-1,
+                    status_code=403,
+                    message="You are not allowed to view other students' entries",
+                )
+        else:
+            student_id = user.id
+    print(student_id)
+    entries = database.get_app_entries(session=session, app_id=app_id, user_email=email, student_id=student_id)
     all_entries = []
     for entry in entries:
         all_entries.append(
             {
                 "entry_id": entry.id,
                 "entry_content": entry.content,
-                "create_at": entry.create_at,
+                "create_at": entry.create_at.timestamp(),
                 "student_id": entry.student_id,
                 "app_id": entry.app_id,
-                "update_at": entry.update_at
+                "update_at": entry.update_at.timestamp(),
             }
         )
     session.close()

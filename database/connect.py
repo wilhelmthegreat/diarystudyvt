@@ -354,7 +354,7 @@ def check_user_in_app(session: Session, app_id: int, user_email: str) -> bool:
         return False
 
 
-def get_app_entries(session: Session, app_id: int, user_email: str) -> list[models.Entry]:
+def get_app_entries(session: Session, app_id: int, user_email: str, student_id: int = None) -> list[models.Entry]:
     """
     This function returns all the entries of an app.
     """
@@ -363,6 +363,12 @@ def get_app_entries(session: Session, app_id: int, user_email: str) -> list[mode
         # Check if the user is a student
         user = get_user(session, user_email)
         if user is not None and user.role == "student":
+            if student_id is not None:
+                # Student can only get their own entries, 
+                # so return None if the student_id is not the 
+                # same as the user's student id
+                if student_id != user.students[0].id:
+                    return None
             # Check if the student is enrolled in the app
             entries = []
             if user.students[0] in app.enrolled_students:
@@ -376,7 +382,24 @@ def get_app_entries(session: Session, app_id: int, user_email: str) -> list[mode
         elif user is not None and user.role == "professor":
             # Check if the professor is the owner of the app
             if user.professors[0] in get_course(session, app.binded_courses[0].id, user_email).professors:
-                return app.entry_list
+                if student_id is not None:
+                    student = get_student_by_id(session, student_id)
+                    if student is not None:
+                        # Check if the student is enrolled in the app
+                        if student in app.enrolled_students:
+                            
+                            entries = []
+                            # Get the entries authored by the student
+                            for entry in app.entry_list:
+                                if int(entry.student_id) == int(student_id):
+                                    entries.append(entry)
+                            return entries
+                        else:
+                            return None
+                    else:
+                        return None
+                else:
+                    return app.entry_list
             else:
                 return None
     else:

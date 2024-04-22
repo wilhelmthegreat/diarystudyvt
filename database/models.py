@@ -128,8 +128,8 @@ class Entry(Model):
     content: Mapped[str] = Column(String(50), nullable=False)
     study_start_time: Mapped[int] = Column(TIMESTAMP, nullable=False)
     study_duration_minutes: Mapped[int] = Column(Integer, nullable=False)
-    create_at: Mapped[int] = Column(TIMESTAMP, nullable=False)
-    update_at: Mapped[int] = Column(TIMESTAMP, nullable=False)
+    create_at: Mapped[datetime] = Column(TIMESTAMP, nullable=False)
+    update_at: Mapped[datetime] = Column(TIMESTAMP, nullable=False)
     
     student: Mapped[Student] = relationship('Student', back_populates='entry_list')
     app: Mapped[App] = relationship('App', back_populates='entry_list')
