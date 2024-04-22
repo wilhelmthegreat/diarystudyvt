@@ -11,6 +11,7 @@ from utils.api_response_wrapper import (
 )
 from datetime import datetime
 from dsmodelling import modelling
+from dsmodelling import lda_modelling
 
 # Set up the routes blueprint
 analytics_routes = Blueprint("analytics_routes", __name__)
@@ -170,3 +171,57 @@ def word_clicked_dashboard(course_id:int, app_id:int, word:str):
         'wordcloud': modelling.associated_word_cloud('\n'.join(all_entries), word, stopw, limit_num),
         'sentences': sents
     })
+
+
+@analytics_routes.route("/lda_html", methods=["GET"])
+@analytics_routes.route("/lda_html/", methods=["GET"])
+def lda_html(course_id:int, app_id:int):
+    """This route will get the lda visualization in html format"""
+    jwt_result = validate_token_in_request(request)
+    if jwt_result["code"] != 0:
+        return client_error_response(
+            data={},
+            internal_code=jwt_result["code"],
+            status_code=401,
+            message=jwt_result["message"],
+        )
+    payload = jwt_result["data"]
+    email = payload["email"]
+    _, Session, _ = database.init_connection(database_uri(), echo=False)
+    session = Session()
+    user = database.get_user(session=session, email=email)
+    if user is None:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=404,
+            message="User not found",
+        )
+    # Check if the given course_id and app_id are valid
+    course = database.get_course(session=session, course_id=course_id, user_email=email)
+    if course is None:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=404,
+            message="Course not found",
+        )
+    app = database.get_app(session=session, app_id=app_id, user_email=email)
+    if app is None:
+        session.close()
+        return client_error_response(
+            data={},
+            internal_code=-1,
+            status_code=404,
+            message="App not found or you are not enrolled in this app",
+        )
+    entries = database.get_app_entries(session=session, app_id=app_id, user_email=email)
+    all_entries = []
+    for entry in entries:
+        all_entries.append(entry.content)
+    session.close()
+    lda_model, corpus, dictionary = lda_modelling.lda_model(all_entries, num_topics=5, passes=15)
+    lda_visualization_html = lda_modelling.lda_visualization_html(lda_model, corpus, dictionary)
+    return lda_visualization_html
