@@ -156,13 +156,15 @@ def word_clicked_dashboard(course_id:int, app_id:int, word:str):
     sents = []
     for entry in entries:
         all_entries.append(entry.content)
-        usr = database.get_user_by_id(session, entry.student_id)
-        sents.append({
-            'sentence': modelling.get_sentence(entry.content, word),
-            'sentiment': modelling.sentiment(entry.content),
-            'user': usr.first_name+" "+usr.last_name,
-            'user_id': entry.student_id,
-            })
+        sent = modelling.get_sentence(entry.content, word)
+        if sent is not None:
+            usr = database.get_user_by_id(session, entry.student_id)
+            sents.append({
+                'sentence': sent,
+                'sentiment': modelling.sentiment(entry.content),
+                'user': usr.first_name+" "+usr.last_name,
+                'user_id': entry.student_id,
+                })
     stopw = []
     for stopword in app.stopwords:
         stopw.append(stopword.word)

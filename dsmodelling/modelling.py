@@ -1,7 +1,5 @@
 import nltk
 from nltk.text import Text
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
 from dsmodelling import textrank_algorithm
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
@@ -45,7 +43,7 @@ def get_sentence(e, wrd):
         if (wrd in e):
             return(textrank_algorithm.get_best_sentence_from_word(e, wrd))
         else:
-            return(textrank_algorithm.get_best_sentence(e))
+            return(None)
 #Analyzes the sentiment of a user post and rates it from -1 being very negative to 1 being very positive
 def sentiment(t):
     tkns = aitokenizer(t, padding=True, truncation=True, return_tensors="pt")
