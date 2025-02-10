@@ -33,3 +33,4 @@ Detailed Description
   - `SSL_ENABLED`: Set this to `True` to enable SSL for the application
     - `SERVER_CERT`: The path to the SSL certificate file
     - `SERVER_KEY`: The path to the SSL key file
+  - `MISTRAL_API_KEY`: The API key for the Mistral API (for some LLM functionality for now, might not be needed in the future). Contact the project maintainer to get this key.
