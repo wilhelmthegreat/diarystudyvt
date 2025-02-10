@@ -118,5 +118,5 @@ if not skip_flask_host:
 print()
 print("Done with setting up the environment variables!")
 print("You can now run the app using the following command after activating the virtual environment and " +
-      "put the Google credentials (client_secret.json) in the config/secret directory:")
+      "put the Google credentials (client_secret.json) in the config/secret directory and set up the MISTRAL_API_KEY variable the .env file:")
 print("python3 backend.py")
